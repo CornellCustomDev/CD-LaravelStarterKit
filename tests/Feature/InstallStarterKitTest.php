@@ -25,13 +25,15 @@ class InstallStarterKitTest extends TestCase
         }
         File::deleteDirectory("$basePath/public/$themeName");
         File::deleteDirectory("$basePath/resources/views/components/$themeName");
+        File::delete("$basePath/config/cu-auth.php");
 
         $file_list = Arr::join(StarterKitServiceProvider::INSTALL_FILES, ', ');
-        $this->artisan("{$packageName}:install")
+        $this->artisan("$packageName:install")
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
             ->expectsConfirmation("Use Starter Kit files ($file_list)?", 'yes')
             ->expectsConfirmation('Install cwd-framework assets?', 'yes')
+            ->expectsConfirmation('Install CUAuth config?', 'yes')
             ->expectsOutputToContain('File installation complete.')
             ->assertExitCode(Command::SUCCESS);
 
@@ -47,6 +49,7 @@ class InstallStarterKitTest extends TestCase
             needle: $projectName,
             haystack: File::get("$basePath/resources/views/$themeName-index.blade.php")
         );
+        $this->assertFileExists("$basePath/config/cu-auth.php");
     }
 
     public function testInstallReplacesFiles()
@@ -71,7 +74,8 @@ class InstallStarterKitTest extends TestCase
             ->expectsQuestion('Project name', $firstProjectName)
             ->expectsQuestion('Project description', $firstProjectDescription)
             ->expectsConfirmation("Use Starter Kit files ($file_list)?", 'yes')
-            ->expectsConfirmation('Install cwd-framework assets?', 'yes');
+            ->expectsConfirmation('Install cwd-framework assets?', 'yes')
+            ->expectsConfirmation('Install CUAuth config?', 'yes');
         $readmeContents = File::get("$basePath/README.md");
         $envContents = File::get("$basePath/.env.example");
         $composerConfig = json_decode(File::get("$basePath/composer.json"), true);
@@ -87,11 +91,40 @@ class InstallStarterKitTest extends TestCase
             ->expectsQuestion('Project name', $secondProjectName)
             ->expectsQuestion('Project description', $secondProjectDescription)
             ->expectsConfirmation("Use Starter Kit files ($file_list)?", 'yes')
-            ->expectsConfirmation('Install cwd-framework assets?', 'yes');
+            ->expectsConfirmation('Install cwd-framework assets?', 'yes')
+            ->expectsConfirmation('Install CUAuth config?', 'yes');
         $readmeContents = File::get("$basePath/README.md");
         $landoContents = File::get("$basePath/.lando.yml");
 
         $this->assertStringContainsString($secondProjectName, $readmeContents);
         $this->assertStringContainsString(Str::slug($secondProjectName), $landoContents);
+    }
+
+    public function testCanInstallCUAuthConfigFiles()
+    {
+        $basePath = $this->getBasePath();
+        $cuAuthConfigFile = 'config/cu-auth.php';
+        $defaultVariable = 'REMOTE_USER';
+        $testVariable = 'REDIRECT_REMOTE_USER';
+
+        File::delete("$basePath/$cuAuthConfigFile");
+        $this->refreshApplication();
+
+        $userVariable = config('cu-auth.remote_user_variable');
+        $this->assertEquals($defaultVariable, $userVariable);
+
+        $this->artisan('vendor:publish --tag=cu-auth-config')
+            ->assertExitCode(Command::SUCCESS);
+
+        // Update the config file with a test value for cu-auth.remote_user_variable.
+        File::put("$basePath/$cuAuthConfigFile", str_replace(
+            "'$defaultVariable'",
+            "'$testVariable'",
+            File::get("$basePath/$cuAuthConfigFile")
+        ));
+        $this->refreshApplication();
+
+        $cuAuthUser = config('cu-auth.remote_user_variable');
+        $this->assertEquals($testVariable, $cuAuthUser);
     }
 }

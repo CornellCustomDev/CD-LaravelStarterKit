@@ -35,7 +35,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         'favicon.ico',
     ];
 
-    public function boot()
+    public function boot(): void
     {
         parent::boot();
 
@@ -70,7 +70,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
             });
     }
 
-    private function install(InstallCommand $command)
+    private function install(InstallCommand $command): void
     {
         $command->info('Installing StarterKit...');
 
@@ -96,10 +96,25 @@ class StarterKitServiceProvider extends PackageServiceProvider
             $this->publishAssets($command, $projectName);
         }
 
+        // Ask if they want to install the CUAuthServiceProvider
+        $shouldInstallCuAuth = $command->confirm(
+            question: 'Install CUAuth config?',
+            default: true,
+        );
+        if ($shouldInstallCuAuth) {
+            $command->call(
+                command: 'vendor:publish',
+                arguments: [
+                    '--tag' => 'cu-auth-config',
+                    '--force' => true,
+                ]
+            );
+        }
+
         $command->info('File installation complete.');
     }
 
-    private function publishFiles(InstallCommand $command)
+    private function publishFiles(InstallCommand $command): void
     {
         $command->call(
             command: 'vendor:publish',
@@ -132,7 +147,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
     }
 
-    private function publishAssets(InstallCommand $command, $projectName)
+    private function publishAssets(InstallCommand $command, $projectName): void
     {
         $command->call(
             command: 'vendor:publish',
@@ -147,7 +162,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         ], $projectName);
     }
 
-    private function updateComposerJson(string $projectName, string $projectDescription)
+    private function updateComposerJson(string $projectName, string $projectDescription): void
     {
         $composerFile = base_path('composer.json');
         $composerConfig = json_decode(File::get($composerFile), true);

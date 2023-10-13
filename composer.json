@@ -28,7 +28,8 @@
   "extra": {
     "laravel": {
       "providers": [
-        "CornellCustomDev\\LaravelStarterKit\\StarterKitServiceProvider"
+        "CornellCustomDev\\LaravelStarterKit\\StarterKitServiceProvider",
+        "CornellCustomDev\\LaravelStarterKit\\CUAuth\\CUAuthServiceProvider"
       ]
     }
   },

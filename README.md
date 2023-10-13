@@ -75,7 +75,7 @@ composer require --update-no-dev cornell-custom-dev/laravel-starter-kit
 The libraries included in the Starter Kit are documented in their respective README files:
 
 - [Contact/PhoneNumber](src/Contact/README.md): A library for parsing and formatting a phone number.
-
+- [CUAuth](src/CUAuth/README.md): A middleware for authorizing Laravel users based on Apache mod_shib authentication.
 
 ## Deploying a site
 Once a Media3 site has been created, you have confirmed you can reach the default site via a web browser, and you have access to the site login by command line, the code can be deployed.
