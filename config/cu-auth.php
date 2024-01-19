@@ -23,4 +23,9 @@ return [
      * Allow Laravel password-based login?
      */
     'allow_local_login' => (bool) env('ALLOW_LOCAL_LOGIN', false),
+
+    /*
+     * Development testing users, comma-separated.
+     */
+    'app_testers' => explode(',', env('APP_TESTERS', '')),
 ];
