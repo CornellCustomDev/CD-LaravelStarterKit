@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
 
-class CUAuth
+class ApacheShib
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -26,8 +26,7 @@ class CUAuth
             return response('Forbidden', Response::HTTP_FORBIDDEN);
         }
 
-        // Allow listeners to authorize the user
-        event(new CUAuthenticated($userId));
+        event(new CUAuthenticated($userId, config('cu-auth.remote_user_lookup_field')));
 
         // If the authenticated user is not logged in, return a 403.
         if (! auth()->check()) {

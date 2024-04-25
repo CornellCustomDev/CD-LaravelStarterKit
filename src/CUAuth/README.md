@@ -16,7 +16,7 @@ log them in or create as user as needed.
 Example usage with routes:
 
 ```php
-use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\CUAuth;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 
-Route::get('profile', [UserController::class, 'show'])->middleware(CUAuth::class);
+Route::get('profile', [UserController::class, 'show'])->middleware(ApacheShib::class);
 ```

@@ -12,8 +12,7 @@ class AuthorizeUser
     {
         // Look for a matching user.
         $userModel = config('auth.providers.users.model');
-        $userLookupField = config('cu-auth.remote_user_lookup_field');
-        $user = $userModel::firstWhere($userLookupField, $event->userId);
+        $user = $userModel::firstWhere($event->userLookupField, $event->userId);
 
         if (empty($user)) {
             // User does not exist, so create them.
