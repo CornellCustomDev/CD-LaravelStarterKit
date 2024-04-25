@@ -1,4 +1,4 @@
-<x-cwd-framework.layout.app title=":project_name" subtitle="Custom Development">
+<x-cd.layout.app title=":project_name" subtitle="Custom Development">
     <h1>Starter Template</h1>
     <p class="intro">A basic starting point for your HTML markup or theme templates</p>
     <p>This template has only baseline CSS and JavaScript loaded. A default right sidebar layout is used,
@@ -113,4 +113,4 @@
         be displayed. A brief technical explanation is that .cu45-helper is a full-viewport-width, relative
         target for an absolutely-positioned ~45px :before pseudo class, allowing unit headings to drop below
         the Cornell logo without requiring separate HTML markup or hardcoded heights.</p>
-</x-cwd-framework.layout.app>
+</x-cd.layout.app>

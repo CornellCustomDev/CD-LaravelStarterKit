@@ -53,11 +53,11 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 $this->publishes([$themeAssetsPath.$themeDir.'/'.$asset_file => public_path(self::THEME_NAME.'/'.$asset_file),
                 ], self::THEME_NAME.'-assets');
             }
-            $exampleFile = self::THEME_NAME.'-index.blade.php';
+            $exampleFile = 'cd-index.blade.php';
             $this->publishes([
-                __DIR__.'/../resources/views/components/'.self::THEME_NAME => resource_path('/views/components/'.self::THEME_NAME),
+                __DIR__.'/../resources/views/components/cd' => resource_path('/views/components/cd'),
                 __DIR__."/../resources/views/$exampleFile" => resource_path("/views/$exampleFile"),
-            ], self::THEME_NAME.'-assets');
+            ], self::PACKAGE_NAME.'-install');
         }
     }
 
@@ -79,21 +79,14 @@ class StarterKitServiceProvider extends PackageServiceProvider
 
         $file_list = Arr::join(self::INSTALL_FILES, ', ');
         $shouldInstallFiles = $command->confirm(
-            question: "Use Starter Kit files ($file_list)?",
+            question: 'Install Starter Kit assets and files?',
             default: true,
         );
         if ($shouldInstallFiles) {
-            $this->publishFiles($command);
+            $this->publishAssets($command);
+            $this->publishFiles($command, $projectName);
             $this->populatePlaceholders(self::INSTALL_FILES, $projectName, $projectDescription);
             $this->updateComposerJson($projectName, $projectDescription);
-        }
-
-        $shouldInstallAssets = $command->confirm(
-            question: 'Install cwd-framework assets?',
-            default: true,
-        );
-        if ($shouldInstallAssets) {
-            $this->publishAssets($command, $projectName);
         }
 
         // Ask if they want to install the CUAuthServiceProvider
@@ -114,7 +107,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         $command->info('File installation complete.');
     }
 
-    private function publishFiles(InstallCommand $command): void
+    private function publishFiles(InstallCommand $command, string $projectName): void
     {
         $command->call(
             command: 'vendor:publish',
@@ -124,9 +117,12 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 '--force' => true,
             ]
         );
+        $this->populatePlaceholders([
+            'resources/views/cd-index.blade.php',
+        ], $projectName);
     }
 
-    public static function populatePlaceholders($files, string $projectName, string $projectDescription = null): void
+    public static function populatePlaceholders($files, string $projectName, ?string $projectDescription = null): void
     {
         $replacements = [
             ':project_name' => $projectName,
@@ -147,7 +143,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
     }
 
-    private function publishAssets(InstallCommand $command, $projectName): void
+    private function publishAssets(InstallCommand $command): void
     {
         $command->call(
             command: 'vendor:publish',
@@ -157,9 +153,6 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 '--force' => true,
             ]
         );
-        $this->populatePlaceholders([
-            'resources/views/'.self::THEME_NAME.'-index.blade.php',
-        ], $projectName);
     }
 
     private function updateComposerJson(string $projectName, string $projectDescription): void

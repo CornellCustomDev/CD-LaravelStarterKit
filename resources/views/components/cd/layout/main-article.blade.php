@@ -1,4 +1,4 @@
 <article id="main-article" class="primary">
-    <x-cwd-framework.layout.breadcrumbs/>
+    <x-cd.layout.breadcrumbs/>
     {{ $slot }}
 </article>
