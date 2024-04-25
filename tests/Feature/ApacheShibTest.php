@@ -28,7 +28,7 @@ class ApacheShibTest extends FeatureTestCase
      */
     private function getApacheAuthRequest($remote_user = null): Request
     {
-        config(['cu-auth.remote_user_variable' => 'REMOTE_USER']);
+        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER']);
 
         $request = new Request();
         if ($remote_user !== null) {
@@ -129,7 +129,7 @@ class ApacheShibTest extends FeatureTestCase
     public function testRouteIsProtectedForRemoteUser()
     {
         $this->addCUAuthenticatedListener();
-        config(['cu-auth.remote_user_variable' => 'REMOTE_USER']);
+        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER']);
 
         // No user is authenticated.
         $this->get(route('test.require-cu-auth'))->assertForbidden();
@@ -142,7 +142,7 @@ class ApacheShibTest extends FeatureTestCase
     /** @define-route usesAuthRoutes */
     public function testRouteIsProtectedForLocalUser()
     {
-        config(['cu-auth.remote_user_variable' => 'REMOTE_USER']);
+        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER']);
         config(['cu-auth.allow_local_login' => true]);
 
         // No user is authenticated.

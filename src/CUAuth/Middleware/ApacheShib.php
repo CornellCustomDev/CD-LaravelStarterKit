@@ -18,7 +18,7 @@ class ApacheShib
         }
 
         // Apache mod_shib populates the remote user variable if someone is logged in.
-        $userId = $request->server(config('cu-auth.remote_user_variable'), config('cu-auth.remote_user'));
+        $userId = $request->server(config('cu-auth.apache_shib_user_variable'), config('cu-auth.remote_user'));
 
         // If no remote user is found, return a 403.
         if (empty($userId)) {
@@ -26,7 +26,7 @@ class ApacheShib
             return response('Forbidden', Response::HTTP_FORBIDDEN);
         }
 
-        event(new CUAuthenticated($userId, config('cu-auth.remote_user_lookup_field')));
+        event(new CUAuthenticated($userId, config('cu-auth.user_lookup_field')));
 
         // If the authenticated user is not logged in, return a 403.
         if (! auth()->check()) {

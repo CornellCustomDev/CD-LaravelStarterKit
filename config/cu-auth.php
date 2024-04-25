@@ -12,12 +12,12 @@ return [
      * For local development without shibboleth, you can add
      * REMOTE_USER=<netid> to your project .env file to log in as that user.
      */
-    'remote_user_variable' => env('REMOTE_USER_VARIABLE', 'REMOTE_USER'),
+    'apache_shib_user_variable' => env('APACHE_SHIB_USER_VARIABLE', 'REMOTE_USER'),
 
     /*
      * What field on the user model should be used to look up the user?
      */
-    'remote_user_lookup_field' => env('REMOTE_USER_LOOKUP_FIELD', 'netid'),
+    'user_lookup_field' => env('USER_LOOKUP_FIELD', 'netid'),
 
     /*
      * Allow Laravel password-based login?

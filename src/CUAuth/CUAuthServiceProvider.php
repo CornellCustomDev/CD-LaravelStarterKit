@@ -30,16 +30,5 @@ class CUAuthServiceProvider extends ServiceProvider
                 ],
             );
         }
-
-        // @TODO This should be middleware, not a gate
-        Gate::define('use-site', function (User $user, $userId) {
-            // Anyone can use production
-            if (config('app.env') == 'production') {
-                return true;
-            }
-
-            // Only configured APP_TESTERS can use non-production
-            return in_array($userId, config('cu-auth.app_testers'));
-        });
     }
 }

@@ -110,13 +110,13 @@ class InstallStarterKitTest extends TestCase
         File::delete("$basePath/$cuAuthConfigFile");
         $this->refreshApplication();
 
-        $userVariable = config('cu-auth.remote_user_variable');
+        $userVariable = config('cu-auth.apache_shib_user_variable');
         $this->assertEquals($defaultVariable, $userVariable);
 
         $this->artisan('vendor:publish --tag=cu-auth-config')
             ->assertExitCode(Command::SUCCESS);
 
-        // Update the config file with a test value for cu-auth.remote_user_variable.
+        // Update the config file with a test value for cu-auth.apache_shib_user_variable.
         File::put("$basePath/$cuAuthConfigFile", str_replace(
             "'$defaultVariable'",
             "'$testVariable'",
@@ -124,7 +124,7 @@ class InstallStarterKitTest extends TestCase
         ));
         $this->refreshApplication();
 
-        $cuAuthUser = config('cu-auth.remote_user_variable');
+        $cuAuthUser = config('cu-auth.apache_shib_user_variable');
         $this->assertEquals($testVariable, $cuAuthUser);
     }
 }
