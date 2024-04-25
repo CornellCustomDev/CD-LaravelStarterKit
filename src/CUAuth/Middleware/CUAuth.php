@@ -5,6 +5,7 @@ namespace CornellCustomDev\LaravelStarterKit\CUAuth\Middleware;
 use Closure;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
 
 class CUAuth
@@ -23,12 +24,6 @@ class CUAuth
         if (empty($userId)) {
             // @TODO: Do we need an unauthenticated event?
             return response('Forbidden', Response::HTTP_FORBIDDEN);
-        }
-
-        // If we have a user who is already logged in, let them through.
-        if (auth()->check()) {
-            // @TODO: Should this confirm that it's the same user?
-            return $next($request);
         }
 
         // Allow listeners to authorize the user

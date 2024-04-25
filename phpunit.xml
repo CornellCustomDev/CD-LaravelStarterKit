@@ -3,25 +3,25 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     bootstrap="vendor/autoload.php"
     colors="true"
-    verbose="true"
     testdox="true"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+    cacheDirectory=".phpunit.cache"
 >
-    <coverage>
-        <include>
-            <directory suffix=".php">src/</directory>
-        </include>
-    </coverage>
-    <testsuites>
-        <testsuite name="Unit">
-            <directory>./tests/Unit</directory>
-        </testsuite>
-        <testsuite name="Feature">
-            <directory>./tests/Feature</directory>
-        </testsuite>
-    </testsuites>
-    <php>
-        <env name="DB_CONNECTION" value="testing"/>
-        <env name="APP_KEY" value="base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10="/>
-    </php>
+  <testsuites>
+    <testsuite name="Unit">
+      <directory>tests/Unit</directory>
+    </testsuite>
+    <testsuite name="Feature">
+      <directory>tests/Feature</directory>
+    </testsuite>
+  </testsuites>
+  <php>
+    <env name="DB_CONNECTION" value="testing"/>
+    <env name="APP_KEY" value="base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10="/>
+  </php>
+  <source>
+    <include>
+      <directory>src/</directory>
+    </include>
+  </source>
 </phpunit>

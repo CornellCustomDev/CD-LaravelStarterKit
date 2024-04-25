@@ -38,7 +38,6 @@ class CUAuthTest extends FeatureTestCase
      */
     public function testCanFailAuthenticatingRemoteUser()
     {
-        config(['cu-auth.allow_local_login' => false]);
         $middleware = new CUAuth();
 
         $response = $middleware->handle(new Request(), fn () => response('OK'));
@@ -49,12 +48,11 @@ class CUAuthTest extends FeatureTestCase
     /**
      * Remote user is authenticated but does not have an account.
      */
-    public function testCallsCUAuthenticatedWithuserId()
+    public function testCallsCUAuthenticatedWithUserId()
     {
         Event::fake([
             CUAuthenticated::class,
         ]);
-        config(['cu-auth.allow_local_login' => false]);
         config(['cu-auth.remote_user_variable' => 'REMOTE_USER']);
         $request = new Request();
         $middleware = new CUAuth();
@@ -111,13 +109,57 @@ class CUAuthTest extends FeatureTestCase
         Event::fake([
             CUAuthenticated::class,
         ]);
-        config(['cu-auth.allow_local_login' => false]);
         config(['cu-auth.remote_user_variable' => 'REMOTE_USER']);
         $this->withServerVariables(['REMOTE_USER' => 'new-user']);
 
         $this->get(route('test.require-cu-auth'));
 
         Event::assertDispatched(CUAuthenticated::class, fn ($event) => $event->userId === 'new-user');
+    }
 
+    /**
+     * Example implementation of CUAuthenticated listener.
+     *
+     * '$authorized' would be defined in the listener, not passed as a parameter.
+     */
+    public function useCUAuthenticatedListener(bool $authorized = true): void
+    {
+        Event::listen(CUAuthenticated::class, function ($event) use ($authorized) {
+            if ($authorized) {
+                auth()->login($this->getTestUser($event->userId));
+            } elseif (auth()->check()) {
+                auth()->logout();
+            }
+        });
+    }
+
+    public function testLogsInAuthorizedUser(): void
+    {
+        $this->useCUAuthenticatedListener();
+
+        config(['cu-auth.remote_user_variable' => 'REMOTE_USER']);
+        $request = new Request();
+        $middleware = new CUAuth();
+
+        $request->server->set('REMOTE_USER', 'auth-user');
+        $response = $middleware->handle($request, fn () => response('OK'));
+
+        $this->assertTrue($response->isOk());
+    }
+
+    public function testLogsOutUnauthorizedUser(): void
+    {
+        $this->useCUAuthenticatedListener(false);
+
+        config(['cu-auth.remote_user_variable' => 'REMOTE_USER']);
+        $user = $this->getTestUser();
+        $request = new Request();
+        $middleware = new CUAuth();
+
+        $this->actingAs($user);
+        $request->server->set('REMOTE_USER', $user->name);
+        $response = $middleware->handle($request, fn () => response('OK'));
+
+        $this->assertTrue($response->isForbidden());
     }
 }

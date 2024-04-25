@@ -3,6 +3,7 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth;
 
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,18 +31,15 @@ class CUAuthServiceProvider extends ServiceProvider
             );
         }
 
-        Gate::define('use-site', function ($user) {
+        // @TODO This should be middleware, not a gate
+        Gate::define('use-site', function (User $user, $userId) {
             // Anyone can use production
             if (config('app.env') == 'production') {
                 return true;
             }
 
             // Only configured APP_TESTERS can use non-production
-            if (in_array($user->netid, config('cu-auth.app_testers'))) {
-                return true;
-            }
-
-            return false;
+            return in_array($userId, config('cu-auth.app_testers'));
         });
     }
 }
