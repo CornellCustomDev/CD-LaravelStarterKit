@@ -5,8 +5,8 @@ namespace CornellCustomDev\LaravelStarterKit\Tests\Feature\CUAuth;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\AppTesters;
 use CornellCustomDev\LaravelStarterKit\Tests\TestCase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 
 class AppTestersTest extends TestCase
 {

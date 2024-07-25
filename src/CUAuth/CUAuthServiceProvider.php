@@ -3,8 +3,6 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth;
 
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
-use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class CUAuthServiceProvider extends ServiceProvider

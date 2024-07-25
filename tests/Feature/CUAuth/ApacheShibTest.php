@@ -1,9 +1,10 @@
 <?php
 
-namespace CornellCustomDev\LaravelStarterKit\Tests\Feature;
+namespace CornellCustomDev\LaravelStarterKit\Tests\Feature\CUAuth;
 
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
+use CornellCustomDev\LaravelStarterKit\Tests\Feature\FeatureTestCase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 
