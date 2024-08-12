@@ -29,7 +29,7 @@ Route::get('profile', [UserController::class, 'show'])->middleware(ApacheShib::c
 ```
 
 ## AppTesters
-On non-production sites, the [AppTesters](./Middleware/AppTesters.php) middleware checks the "APP_TESTERS" environment variable for a comma-separated list of users. If the current user is not logged in and in the list, the middleware will return an HTTP_FORBIDDEN response.
+On non-production sites, the [AppTesters](./Middleware/AppTesters.php) middleware checks the "APP_TESTERS" environment variable for a comma-separated list of users. If a user is logged in and not in the list, the middleware will return an HTTP_FORBIDDEN response.
 
 The field used for looking up users is `netid` by default. It is configurable in the [config/cu-auth.php](../../config/cu-auth.php) file as `user_lookup_field`.
 
