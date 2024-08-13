@@ -2,12 +2,16 @@
 
 namespace CornellCustomDev\LaravelStarterKit;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\suggest;
+use function Laravel\Prompts\text;
 
 class StarterKitServiceProvider extends PackageServiceProvider
 {
@@ -24,7 +28,8 @@ class StarterKitServiceProvider extends PackageServiceProvider
         '.env.example',
         '.gitignore',
         '.lando.yml',
-        'public/.htaccess',
+        // Comment this out until we need to include mod_shib config
+        // 'public/.htaccess',
     ];
 
     public const ASSET_FILES = [
@@ -35,29 +40,41 @@ class StarterKitServiceProvider extends PackageServiceProvider
         'favicon.ico',
     ];
 
+    public const EXAMPLE_FILES = [
+        'resources/views/cd-index.blade.php',
+        'resources/views/form-example.blade.php',
+    ];
+
     public function boot()
     {
         parent::boot();
 
         $themeDir = '/vendor/cubear/cwd_framework_lite';
         $themeAssetsPath = File::isDirectory(base_path().$themeDir) ? base_path() : __DIR__.'/..';
+        $filesSourcePath = __DIR__.'/..';
 
         if ($this->app->runningInConsole()) {
             foreach (self::INSTALL_FILES as $installFileName) {
                 $this->publishes([
                     __DIR__."/../project/{$installFileName}" => base_path($installFileName),
-                ], self::PACKAGE_NAME.'-install');
+                ], self::PACKAGE_NAME.':files');
             }
 
             foreach (self::ASSET_FILES as $asset_file) {
-                $this->publishes([$themeAssetsPath.$themeDir.'/'.$asset_file => public_path(self::THEME_NAME.'/'.$asset_file),
-                ], self::THEME_NAME.'-assets');
+                $this->publishes([
+                    $themeAssetsPath.$themeDir.'/'.$asset_file => public_path(self::THEME_NAME.'/'.$asset_file),
+                ], self::THEME_NAME.':assets');
             }
-            $exampleFile = 'cd-index.blade.php';
+
             $this->publishes([
-                __DIR__.'/../resources/views/components/cd' => resource_path('/views/components/cd'),
-                __DIR__."/../resources/views/$exampleFile" => resource_path("/views/$exampleFile"),
-            ], self::PACKAGE_NAME.'-install');
+                "$filesSourcePath/resources/views/components/cd" => resource_path('/views/components/cd'),
+            ], self::PACKAGE_NAME.':components');
+
+            foreach (self::EXAMPLE_FILES as $exampleFile) {
+                $this->publishes([
+                    "$filesSourcePath/$exampleFile" => base_path($exampleFile),
+                ], self::PACKAGE_NAME.':examples');
+            }
         }
     }
 
@@ -72,39 +89,80 @@ class StarterKitServiceProvider extends PackageServiceProvider
 
     private function install(InstallCommand $command)
     {
-        $command->info('Installing StarterKit...');
+        info('Installing StarterKit...');
 
-        $projectName = $command->ask('Project name', Str::title(File::basename(base_path())));
-        $projectDescription = $command->ask('Project description', self::PROJECT_DESCRIPTION);
+        $install = collect(multiselect(
+            label: 'What would you like to install or update?',
+            options: [
+                'files' => 'Basic project files (README, .env.example, etc.) and update composer.json',
+                'assets' => 'Theme assets from CWD Framework Lite',
+                'components' => 'Form components (/resources/views/components/cd)',
+                'examples' => 'Example blade files',
+            ],
+            default: ['files', 'assets', 'components'],
+            required: true,
+        ));
 
-        $file_list = Arr::join(self::INSTALL_FILES, ', ');
-        $shouldInstallFiles = $command->confirm(
-            question: 'Install Starter Kit assets and files?',
-            default: true,
-        );
-        if ($shouldInstallFiles) {
-            $this->publishAssets($command);
-            $this->publishFiles($command, $projectName);
+        $installFiles = $install->contains('files');
+        $installExamples = $install->contains('examples');
+
+        if ($installFiles || $installExamples) {
+            $composerConfig = json_decode(File::get(base_path('composer.json')), true);
+            $composerTitle = $composerConfig['name'] ?? null;
+            $basePathTitle = Str::title(File::basename(base_path()));
+            $projectName = suggest(
+                label: 'Project name',
+                options: array_filter([$basePathTitle, $composerTitle]),
+                required: true,
+                hint: 'This is used in the README and slugified for use in .env, composer.json, etc.',
+            );
+
+            $projectDescription = text(
+                label: 'Project description',
+                default: self::PROJECT_DESCRIPTION,
+                required: true,
+                hint: 'This is used in the README and composer.json.',
+            );
+        }
+
+        // Confirm before proceeding
+        if (! confirm('Proceed with installation?')) {
+            info('Installation aborted.');
+            return;
+        }
+
+        if ($installFiles) {
+            $this->publishTag($command, self::PACKAGE_NAME.':files');
             $this->populatePlaceholders(self::INSTALL_FILES, $projectName, $projectDescription);
             $this->updateComposerJson($projectName, $projectDescription);
         }
 
-        $command->info('File installation complete.');
+        if ($install->contains('assets')) {
+            $this->publishTag($command, self::THEME_NAME.':assets');
+        }
+
+        if ($install->contains('components')) {
+            $this->publishTag($command, self::PACKAGE_NAME.':components');
+        }
+
+        if ($installExamples) {
+            $this->publishTag($command, self::PACKAGE_NAME.':examples');
+            $this->populatePlaceholders(self::EXAMPLE_FILES, $projectName);
+        }
+
+        info('Installation complete.');
     }
 
-    private function publishFiles(InstallCommand $command, string $projectName)
+    private function publishTag(InstallCommand $command, string $tag): void
     {
         $command->call(
             command: 'vendor:publish',
             arguments: [
                 '--provider' => StarterKitServiceProvider::class,
-                '--tag' => self::PACKAGE_NAME.'-install',
+                '--tag' => $tag,
                 '--force' => true,
             ]
         );
-        $this->populatePlaceholders([
-            'resources/views/cd-index.blade.php',
-        ], $projectName);
     }
 
     public static function populatePlaceholders($files, string $projectName, ?string $projectDescription = null): void
@@ -128,19 +186,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
     }
 
-    private function publishAssets(InstallCommand $command)
-    {
-        $command->call(
-            command: 'vendor:publish',
-            arguments: [
-                '--provider' => StarterKitServiceProvider::class,
-                '--tag' => self::THEME_NAME.'-assets',
-                '--force' => true,
-            ]
-        );
-    }
-
-    private function updateComposerJson(string $projectName, string $projectDescription)
+    private function updateComposerJson(string $projectName, string $projectDescription): void
     {
         $composerFile = base_path('composer.json');
         $composerConfig = json_decode(File::get($composerFile), true);
