@@ -41,8 +41,9 @@ class StarterKitServiceProvider extends PackageServiceProvider
     ];
 
     public const EXAMPLE_FILES = [
-        'resources/views/cd-index.blade.php',
-        'resources/views/form-example.blade.php',
+        'resources/views/examples/cd-index.blade.php',
+        // Comment this out until we have better form components and form example
+        // 'resources/views/examples/form-example.blade.php',
     ];
 
     public function boot()
@@ -67,7 +68,9 @@ class StarterKitServiceProvider extends PackageServiceProvider
             }
 
             $this->publishes([
-                "$filesSourcePath/resources/views/components/cd" => resource_path('/views/components/cd'),
+                "$filesSourcePath/resources/views/components/cd/layout" => resource_path('/views/components/cd/layout'),
+                // Comment this out until we have better form components
+                // "$filesSourcePath/resources/views/components/cd/form" => resource_path('/views/components/cd/form'),
             ], self::PACKAGE_NAME.':components');
 
             foreach (self::EXAMPLE_FILES as $exampleFile) {
@@ -96,20 +99,22 @@ class StarterKitServiceProvider extends PackageServiceProvider
             options: [
                 'files' => 'Basic project files (README, .env.example, etc.) and update composer.json',
                 'assets' => 'Theme assets from CWD Framework Lite',
-                'components' => 'Form components (/resources/views/components/cd)',
+                'components' => 'View components (/resources/views/components/cd)',
                 'examples' => 'Example blade files',
             ],
             default: ['files', 'assets', 'components'],
             required: true,
+            hint: 'Note: Any existing files will be replaced for the selected options.',
         ));
 
         $installFiles = $install->contains('files');
         $installExamples = $install->contains('examples');
 
         if ($installFiles || $installExamples) {
-            $composerConfig = json_decode(File::get(base_path('composer.json')), true);
-            $composerTitle = $composerConfig['name'] ?? null;
             $basePathTitle = Str::title(File::basename(base_path()));
+            $composerConfig = json_decode(File::get(base_path('composer.json')), true);
+            // Turn something like "cornell-custom-dev/laravel-demo" into "Laravel Demo"
+            $composerTitle = Str::title(str_replace('-', ' ', Str::after($composerConfig['name'], '/')));
             $projectName = suggest(
                 label: 'Project name',
                 options: array_filter([$basePathTitle, $composerTitle]),
