@@ -13,6 +13,7 @@ return [
      * REMOTE_USER=<netid> to your project .env file to log in as that user.
      */
     'apache_shib_user_variable' => env('APACHE_SHIB_USER_VARIABLE', 'REMOTE_USER'),
+    'remote_user_override' => env('REMOTE_USER'),
 
     /*
      * What field on the user model should be used to look up the user?

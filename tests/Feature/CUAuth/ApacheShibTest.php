@@ -29,11 +29,11 @@ class ApacheShibTest extends FeatureTestCase
      */
     private function getApacheAuthRequest($remote_user = null): Request
     {
-        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER']);
+        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
 
         $request = new Request;
         if ($remote_user !== null) {
-            $request->server->set('REMOTE_USER', $remote_user);
+            $request->server->set('REMOTE_USER_TEST', $remote_user);
         }
 
         return $request;
@@ -130,20 +130,35 @@ class ApacheShibTest extends FeatureTestCase
     public function testRouteIsProtectedForRemoteUser()
     {
         $this->addCUAuthenticatedListener();
-        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER']);
+        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
 
         // No user is authenticated.
         $this->get(route('test.require-cu-auth'))->assertForbidden();
 
         // Remote user is authenticated.
-        $this->withServerVariables(['REMOTE_USER' => 'new-user']);
+        $this->withServerVariables(['REMOTE_USER_TEST' => 'new-user']);
+        $this->get(route('test.require-cu-auth'))->assertOk();
+    }
+
+    /** @define-route usesAuthRoutes */
+    public function testRouteIsProtectedForProductionRemoteUser()
+    {
+        $this->addCUAuthenticatedListener();
+        config(['cu-auth.remote_user_override' => 'new-user']);
+
+        // Override does not work in production environment.
+        $this->app->detectEnvironment(fn () => 'production');
+        $this->get(route('test.require-cu-auth'))->assertForbidden();
+
+        // Override works in local environment.
+        $this->app->detectEnvironment(fn () => 'local');
         $this->get(route('test.require-cu-auth'))->assertOk();
     }
 
     /** @define-route usesAuthRoutes */
     public function testRouteIsProtectedForLocalUser()
     {
-        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER']);
+        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
         config(['cu-auth.allow_local_login' => true]);
 
         // No user is authenticated.
@@ -152,5 +167,20 @@ class ApacheShibTest extends FeatureTestCase
         // Local user is authenticated.
         $this->actingAs($this->getTestUser());
         $this->get(route('test.require-cu-auth'))->assertOk();
+    }
+
+    public function testRouteIsProtectedWithoutUserLookup()
+    {
+        config(['cu-auth.remote_user_override' => 'new-user']);
+        config(['cu-auth.user_lookup_field' => null]);
+
+        // Require an authenticated user.
+        $this->addCUAuthenticatedListener(authorized: false);
+        $request = $this->getApacheAuthRequest('new-user');
+
+        $response = (new ApacheShib)->handle($request, fn () => response('OK'));
+
+        $this->assertTrue($response->isOk());
+
     }
 }
