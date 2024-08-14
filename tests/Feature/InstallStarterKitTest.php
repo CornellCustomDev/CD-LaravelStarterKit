@@ -2,6 +2,7 @@
 
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
 use CornellCustomDev\LaravelStarterKit\Tests\TestCase;
 use Illuminate\Support\Facades\File;
@@ -103,7 +104,6 @@ class InstallStarterKitTest extends TestCase
         $this->artisan(
             command: 'vendor:publish',
             parameters: [
-                '--provider' => StarterKitServiceProvider::class,
                 '--tag' => StarterKitServiceProvider::PACKAGE_NAME.':files',
                 '--force' => true,
             ]
@@ -145,11 +145,10 @@ class InstallStarterKitTest extends TestCase
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples',
+                'files', 'assets', 'components', 'examples', 'cu-auth',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
-            ->expectsConfirmation('Install CUAuth config?', 'yes')
             ->expectsConfirmation('Proceed with installation?', 'yes')
             ->expectsOutputToContain('Installation complete.');
     }
@@ -178,28 +177,31 @@ class InstallStarterKitTest extends TestCase
     public function testCanInstallCUAuthConfigFiles()
     {
         $basePath = $this->getBasePath();
-        $cuAuthConfigFile = 'config/cu-auth.php';
         $defaultVariable = 'REMOTE_USER';
         $testVariable = 'REDIRECT_REMOTE_USER';
-
-        File::delete("$basePath/$cuAuthConfigFile");
+        // Make sure we have config values
         $this->refreshApplication();
 
         $userVariable = config('cu-auth.apache_shib_user_variable');
         $this->assertEquals($defaultVariable, $userVariable);
 
-        $this->artisan('vendor:publish --tag=cu-auth-config')
-            ->assertExitCode(Command::SUCCESS);
+        $this->artisan(
+            command: 'vendor:publish',
+            parameters: [
+                '--tag' => StarterKitServiceProvider::PACKAGE_NAME.':'.CUAuthServiceProvider::INSTALL_CONFIG_TAG,
+                '--force' => true,
+            ])
+            ->assertSuccessful();
 
         // Update the config file with a test value for cu-auth.apache_shib_user_variable.
-        File::put("$basePath/$cuAuthConfigFile", str_replace(
+        File::put("$basePath/config/cu-auth.php", str_replace(
             "'$defaultVariable'",
             "'$testVariable'",
-            File::get("$basePath/$cuAuthConfigFile")
+            File::get("$basePath/config/cu-auth.php")
         ));
         $this->refreshApplication();
 
-        $cuAuthUser = config('cu-auth.apache_shib_user_variable');
-        $this->assertEquals($testVariable, $cuAuthUser);
+        $userVariable = config('cu-auth.apache_shib_user_variable');
+        $this->assertEquals($testVariable, $userVariable);
     }
 }

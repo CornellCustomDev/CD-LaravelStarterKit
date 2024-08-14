@@ -57,7 +57,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         if ($this->app->runningInConsole()) {
             foreach (self::INSTALL_FILES as $installFileName) {
                 $this->publishes([
-                    __DIR__."/../project/{$installFileName}" => base_path($installFileName),
+                    __DIR__."/../project/$installFileName" => base_path($installFileName),
                 ], self::PACKAGE_NAME.':files');
             }
 
@@ -158,7 +158,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
 
         if ($install->contains('cu-auth')) {
-            $this->publishTag($command, self::PACKAGE_NAME.':cu-auth-config');
+            $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_CONFIG_TAG);
         }
 
         info('Installation complete.');
@@ -169,7 +169,6 @@ class StarterKitServiceProvider extends PackageServiceProvider
         $command->call(
             command: 'vendor:publish',
             arguments: [
-                '--provider' => StarterKitServiceProvider::class,
                 '--tag' => $tag,
                 '--force' => true,
             ]

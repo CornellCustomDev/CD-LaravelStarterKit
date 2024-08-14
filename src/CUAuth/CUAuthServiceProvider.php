@@ -7,6 +7,8 @@ use Illuminate\Support\ServiceProvider;
 
 class CUAuthServiceProvider extends ServiceProvider
 {
+    const INSTALL_CONFIG_TAG = 'cu-auth-config';
+
     public function register(): void
     {
         $this->mergeConfigFrom(
@@ -18,15 +20,9 @@ class CUAuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->publishes(
-                paths: [
-                    __DIR__.'/../../config/cu-auth.php' => config_path('cu-auth.php'),
-                ],
-                groups: [
-                    StarterKitServiceProvider::PACKAGE_NAME.':config',
-                    'cu-auth-config',
-                ],
-            );
+            $this->publishes([
+                __DIR__.'/../../config/cu-auth.php' => config_path('cu-auth.php'),
+            ], StarterKitServiceProvider::PACKAGE_NAME.':'.self::INSTALL_CONFIG_TAG);
         }
     }
 }
