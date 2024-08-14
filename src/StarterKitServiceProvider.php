@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\multiselect;
@@ -133,6 +134,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         // Confirm before proceeding
         if (! confirm('Proceed with installation?')) {
             info('Installation aborted.');
+
             return;
         }
 
