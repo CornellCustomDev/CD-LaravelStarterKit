@@ -12,6 +12,5 @@ class CUAuthenticated
     public function __construct(
         public readonly string $userId,
         public readonly string $userLookupField = 'email',
-    ) {
-    }
+    ) {}
 }

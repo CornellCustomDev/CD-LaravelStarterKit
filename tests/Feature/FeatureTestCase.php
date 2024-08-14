@@ -40,7 +40,7 @@ class FeatureTestCase extends TestCase
         string $name = 'PHPUnit Test User',
         string $email = 'test@example.com',
     ): User {
-        $user = new User();
+        $user = new User;
         $user->name = $name;
         $user->email = $email;
         $user->password = Str::random(32);

@@ -31,7 +31,7 @@ class ApacheShibTest extends FeatureTestCase
     {
         config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER']);
 
-        $request = new Request();
+        $request = new Request;
         if ($remote_user !== null) {
             $request->server->set('REMOTE_USER', $remote_user);
         }
@@ -47,7 +47,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest();
 
-        $response = (new ApacheShib())->handle($request, fn () => response('OK'));
+        $response = (new ApacheShib)->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isForbidden());
     }
@@ -60,7 +60,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest('new-user');
 
-        $response = (new ApacheShib())->handle($request, fn () => response('OK'));
+        $response = (new ApacheShib)->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isOk());
     }
@@ -73,7 +73,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->addCUAuthenticatedListener(authorized: false);
         $request = $this->getApacheAuthRequest('new-user');
 
-        $response = (new ApacheShib())->handle($request, fn () => response('OK'));
+        $response = (new ApacheShib)->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isForbidden());
     }
@@ -85,7 +85,7 @@ class ApacheShibTest extends FeatureTestCase
     {
         config(['cu-auth.allow_local_login' => true]);
 
-        $response = (new ApacheShib())->handle(new Request(), fn () => response('OK'));
+        $response = (new ApacheShib)->handle(new Request, fn () => response('OK'));
 
         $this->assertTrue($response->isForbidden());
     }
@@ -98,7 +98,7 @@ class ApacheShibTest extends FeatureTestCase
         config(['cu-auth.allow_local_login' => true]);
         auth()->login($this->getTestUser());
 
-        $response = (new ApacheShib())->handle(new Request(), fn () => response('OK'));
+        $response = (new ApacheShib)->handle(new Request, fn () => response('OK'));
 
         $this->assertTrue($response->isOk());
     }

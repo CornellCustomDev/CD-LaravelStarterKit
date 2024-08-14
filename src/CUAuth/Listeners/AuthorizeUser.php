@@ -16,7 +16,7 @@ class AuthorizeUser
 
         if (empty($user)) {
             // User does not exist, so create them.
-            $user = new $userModel();
+            $user = new $userModel;
             $user->name = $event->userId;
             $user->email = $event->userId;
             $user->password = Str::random(32);
