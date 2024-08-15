@@ -19,11 +19,11 @@ class AppTesters
         if (auth()->check()) {
             $userLookupField = config('cu-auth.user_lookup_field');
             $userId = auth()->user()->$userLookupField;
-            if (in_array($userId, config('cu-auth.app_testers'))) {
-                return $next($request);
+            if (empty($userId) || ! in_array($userId, config('cu-auth.app_testers'))) {
+                return response('Forbidden', Response::HTTP_FORBIDDEN);
             }
         }
 
-        return response('Forbidden', Response::HTTP_FORBIDDEN);
+        return $next($request);
     }
 }
