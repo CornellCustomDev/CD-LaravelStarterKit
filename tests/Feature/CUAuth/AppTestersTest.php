@@ -48,4 +48,17 @@ class AppTestersTest extends FeatureTestCase
 
         $this->assertTrue($response->isForbidden());
     }
+
+    public function testHandleWithNoUser()
+    {
+        Config::set('app.env', 'local');
+        Config::set('cu-auth.user_lookup_field', 'id');
+        Config::set('cu-auth.app_testers', 'test-user');
+        Auth::shouldReceive('check')->andReturn(false);
+
+        $response = (new AppTesters)->handle(new Request, fn () => response('OK'));
+
+        // We cannot check against app_testers if there is no logged-in user.
+        $this->assertTrue($response->isOk());
+    }
 }
