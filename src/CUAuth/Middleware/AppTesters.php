@@ -26,6 +26,11 @@ class AppTesters
             return $next($request);
         }
 
+        // If no app_testers are defined, anyone can use
+        if ($this->app_testers->isEmpty()) {
+            return $next($request);
+        }
+
         // If there is no logged-in user, we cannot check against app_testers
         if (! auth()->check()) {
             return $next($request);
