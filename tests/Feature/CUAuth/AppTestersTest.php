@@ -27,7 +27,7 @@ class AppTestersTest extends FeatureTestCase
     {
         Config::set('app.env', 'local');
         Config::set('cu-auth.user_lookup_field', 'id');
-        Config::set('cu-auth.app_testers', ['test-user']);
+        Config::set('cu-auth.app_testers', 'a-user, test-user');
         Auth::shouldReceive('check')->andReturn(true);
         Auth::shouldReceive('user')->andReturn((object) ['id' => 'test-user']);
 
@@ -40,7 +40,7 @@ class AppTestersTest extends FeatureTestCase
     {
         Config::set('app.env', 'local');
         Config::set('cu-auth.user_lookup_field', 'id');
-        Config::set('cu-auth.app_testers', ['test-user']);
+        Config::set('cu-auth.app_testers', 'test-user');
         Auth::shouldReceive('check')->andReturn(true);
         Auth::shouldReceive('user')->andReturn((object) ['id' => 'not-test-user']);
 

@@ -28,7 +28,7 @@ return [
     | Comma-separated list of users to allow in development environments.
     |
     */
-    'app_testers' => Str::of(env('APP_TESTERS', ''))->split('/[\s,]+/')->filter()->all(),
+    'app_testers' => env('APP_TESTERS', ''),
 
     /*
     |--------------------------------------------------------------------------
