@@ -2,45 +2,67 @@
 
 Middleware for authorizing Laravel users.
 
-Multiple middleware implementations are available:
-- [ApacheShib](./Middleware/ApacheShib.php): Authorize users based on the apache mod_shib server variable.
-- [AppTesters](./Middleware/AppTesters.php): Limits non-production access to users in the `APP_TESTERS` environment variable.
-
-_Note: For testing purposes, the environment variable "ALLOW_LOCAL_LOGIN" can be set to true to bypass the middleware for a currently authenticated user._
-
 ## ApacheShib
-The [ApacheShib](./Middleware/ApacheShib.php) middleware looks for the server variable "REMOTE_USER" and fires a `CUAuthenticated` event if it is set. (
-See [config/cu-auth.php](../../config/cu-auth.php) `apache_shib_user_variable` if you need to modify the server variable name.) If the REMOTE_USER is not set or if the CUAuthenticated
-event handling does not result in a user being logged in, the middleware will return an HTTP_FORBIDDEN response.
 
-The site must [register a listener](https://laravel.com/docs/10.x/events#registering-event-subscribers) for
-the `CUAuthenticated` event. This listener can use the `$userId` from the event to look up the user in the database and
+Use with Apache mod_shib to authorize users. An event listener must be registered to handle the `CUAuthenticated` event 
+to implement the application login.
+
+### Usage
+
+```php
+use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
+
+Route::group(['middleware' => [ApacheShib::class]], function () {
+    // Protected routes here
+    Route::get('profile', [UserController::class, 'show']);
+});
+```
+
+The site must [register a listener](https://laravel.com/docs/11.x/events#registering-events-and-listeners) for
+the `CUAuthenticated` event. This listener should take the `$userId` from the event to look up the user in the database and
 log them in or create as user as needed.
 
 > [AuthorizeUser](./Listeners/AuthorizeUser.php) is provided as a starting point for handling the CUAuthenticated event.
 > It is simplistic and should be replaced with a site-specific implementation in the site code base.
 
-Example route usage:
+If the REMOTE_USER server variable is not set or if the CUAuthenticated
+event handling does not result in a user being logged in, the middleware will return an HTTP_FORBIDDEN response.
 
-```php
-use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 
-Route::get('profile', [UserController::class, 'show'])->middleware(ApacheShib::class);
+### Configuration and Testing
+
+For mod_shib, the default is to look for the server variable "REMOTE_USER". This is configurable in [config/cu-auth.php](../../config/cu-auth.php).
+
+For local testing, setting "REMOTE_USER" in the project `.env` file will override the server variable. Note that
+`APP_ENV` must be set to "local" for this to work.
+
+```env
+APP_ENV=local
+REMOTE_USER=abc123
 ```
 
+
+
 ## AppTesters
-On non-production sites, the [AppTesters](./Middleware/AppTesters.php) middleware checks the "APP_TESTERS" environment variable for a comma-separated list of users. If a user is logged in and not in the list, the middleware will return an HTTP_FORBIDDEN response.
 
-The field used for looking up users is `netid` by default. It is configurable in the [config/cu-auth.php](../../config/cu-auth.php) file as `user_lookup_field`.
+Limits non-production access to users in the `APP_TESTERS` environment variable.
 
-Example route usage integrated with ApacheShib:
+### Usage
 
 ```php
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\AppTesters;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 
-Route::group(['middleware' => [AppTesters::class]) ], function () {
-    Route::get('profile', [UserController::class, 'show'])->middleware(ApacheShib::class);
+Route::group(['middleware' => [ApacheShib::class, AppTesters::class], function () {
+    Route::get('profile', [UserController::class, 'show']);
 });
 ```
 
+On non-production sites, the [AppTesters](./Middleware/AppTesters.php) middleware checks the "APP_TESTERS" environment variable for a comma-separated list of users. If a user is logged in and not in the list, the middleware will return an HTTP_FORBIDDEN response.
+
+The field used for looking up users is `netid` by default. It is configurable in the [config/cu-auth.php](../../config/cu-auth.php) file as `user_lookup_field`.
+
+
+
+## LocalLogin
+_Note: For testing purposes, the environment variable "ALLOW_LOCAL_LOGIN" can be set to true to bypass the middleware for a currently authenticated user._
