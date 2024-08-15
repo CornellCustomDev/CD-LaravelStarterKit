@@ -25,7 +25,10 @@ class ApacheShib
         // If no remote user is found, return a 403.
         if (empty($userId)) {
             // @TODO: Do we need an unauthenticated event to match CUAuthenticated?
-            return response('Forbidden', Response::HTTP_FORBIDDEN);
+            if (app()->runningInConsole()) {
+                return response('Forbidden', Response::HTTP_FORBIDDEN);
+            }
+            abort(403);
         }
 
         $userLookupField = config('cu-auth.user_lookup_field');
@@ -39,7 +42,10 @@ class ApacheShib
 
         // If the authenticated user is not logged in, return a 403.
         if (! auth()->check()) {
-            return response('Forbidden', Response::HTTP_FORBIDDEN);
+            if (app()->runningInConsole()) {
+                return response('Forbidden', Response::HTTP_FORBIDDEN);
+            }
+            abort(403);
         }
 
         return $next($request);

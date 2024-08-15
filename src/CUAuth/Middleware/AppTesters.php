@@ -37,6 +37,9 @@ class AppTesters
             return $next($request);
         }
 
-        return response('Forbidden', Response::HTTP_FORBIDDEN);
+        if (app()->runningInConsole()) {
+            return response('Forbidden', Response::HTTP_FORBIDDEN);
+        }
+        abort(403);
     }
 }
