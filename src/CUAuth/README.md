@@ -23,7 +23,7 @@ the `CUAuthenticated` event. This listener should take the `$userId` from the ev
 log them in or create as user as needed.
 
 > [AuthorizeUser](./Listeners/AuthorizeUser.php) is provided as a starting point for handling the CUAuthenticated event.
-> It is simplistic and should be replaced with a site-specific implementation in the site code base.
+> It is simplistic and should be replaced with a site-specific implementation in the site code base. It demonstrates retrieving user data from [ShibIdentity](./DataObjects/ShibIdentity.php) and creating a user if they do not exist. 
 
 If the REMOTE_USER server variable is not set or if the CUAuthenticated
 event handling does not result in a user being logged in, the middleware will return an HTTP_FORBIDDEN response.

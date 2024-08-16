@@ -33,6 +33,9 @@ class ShibIdentity
         public readonly array $serverVars = [],
     ) {}
 
+    /**
+     * Shibboleth server variables will be retrieved from the request if not provided.
+     */
     public static function fromServerVars(?array $serverVars = null): self
     {
         if (empty($serverVars)) {
@@ -59,12 +62,18 @@ class ShibIdentity
         return str_contains($this->idp, 'med.cornell.edu');
     }
 
+    /**
+     * Returns the primary email (netid@cornell.edu) if available, otherwise the alias email.
+     */
     public function email(): string
     {
         // eduPersonPrincipal name is netid@cornell.edu, mail is alias email
         return $this->serverVars['eduPersonPrincipalName'] ?? $this->mail;
     }
 
+    /**
+     * Returns the display name if available, otherwise the common name.
+     */
     public function name(): string
     {
         return $this->serverVars['displayName'] ?? $this->serverVars['cn'] ?? '';
