@@ -2,8 +2,8 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects;
 
-class ShibIdentity {
-
+class ShibIdentity
+{
     public const SHIB_FIELDS = [
         'Shib_Application_ID', // <vhost>
         'Shib_Authentication_Instant', // YYYY-MM-DDT00:00:00.000Z
@@ -58,5 +58,4 @@ class ShibIdentity {
         // TODO: Verify this is the correct domain
         return str_contains($this->idp, 'med.cornell.edu');
     }
-
 }
