@@ -58,4 +58,15 @@ class ShibIdentity
         // TODO: Verify this is the correct domain
         return str_contains($this->idp, 'med.cornell.edu');
     }
+
+    public function email(): string
+    {
+        // eduPersonPrincipal name is netid@cornell.edu, mail is alias email
+        return $this->serverVars['eduPersonPrincipalName'] ?? $this->mail;
+    }
+
+    public function name(): string
+    {
+        return $this->serverVars['displayName'] ?? $this->serverVars['cn'] ?? '';
+    }
 }

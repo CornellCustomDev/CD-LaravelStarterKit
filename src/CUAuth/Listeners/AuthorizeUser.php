@@ -21,8 +21,8 @@ class AuthorizeUser
             // User does not exist, so create them.
             $user = new $userModel;
             $user->$userLookupField = $event->userId;
-            $user->name = $shib->displayName;
-            $user->email = $shib->mail;
+            $user->name = $shib->name();
+            $user->email = $shib->email();
             $user->password = Str::random(32);
             $user->save();
             Log::info("AuthorizeUser: Created user $event->userId with ID $user->id.");
