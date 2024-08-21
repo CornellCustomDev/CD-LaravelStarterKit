@@ -41,12 +41,16 @@ class InstallStarterKitTest extends TestCase
         $this->assertFileDoesNotExist("$basePath/public/$themeName/sass/base.scss");
         $this->assertFileExists("$basePath/public/$themeName/favicon.ico");
         $this->assertFileExists("$basePath/resources/views/components/cd/layout/app.blade.php");
-        // Comment out until we have form components properly built
-        // $this->assertFileExists("$basePath/resources/views/components/cd/form/form-item.blade.php");
+        $this->assertFileExists("$basePath/resources/views/components/cd/form/form-item.blade.php");
         $this->assertFileExists("$basePath/resources/views/examples/cd-index.blade.php");
         $this->assertStringContainsString(
             needle: $projectName,
             haystack: File::get("$basePath/resources/views/examples/cd-index.blade.php")
+        );
+        $this->assertFileExists("$basePath/resources/views/examples/form-example.blade.php");
+        $this->assertStringContainsString(
+            needle: $projectName,
+            haystack: File::get("$basePath/resources/views/examples/form-example.blade.php")
         );
     }
 
@@ -115,7 +119,6 @@ class InstallStarterKitTest extends TestCase
         $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', ['components', 'examples'])
             ->expectsQuestion('Project name', 'Test Project')
-            ->expectsQuestion('Project description', 'Test description')
             ->expectsConfirmation('Proceed with installation?', 'yes')
             ->expectsOutputToContain('Installation complete.')
             ->assertSuccessful();

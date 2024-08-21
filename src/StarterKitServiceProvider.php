@@ -43,8 +43,8 @@ class StarterKitServiceProvider extends PackageServiceProvider
 
     public const EXAMPLE_FILES = [
         'resources/views/examples/cd-index.blade.php',
-        // Comment this out until we have better form components and form example
-        // 'resources/views/examples/form-example.blade.php',
+        'resources/views/examples/form-example.blade.php',
+        'resources/views/examples/livewire-form-example.blade.php',
     ];
 
     public function boot()
@@ -69,9 +69,9 @@ class StarterKitServiceProvider extends PackageServiceProvider
             }
 
             $this->publishes([
+                "$filesSourcePath/resources/views/components/cd/dialog" => resource_path('/views/components/cd/dialog'),
+                "$filesSourcePath/resources/views/components/cd/form" => resource_path('/views/components/cd/form'),
                 "$filesSourcePath/resources/views/components/cd/layout" => resource_path('/views/components/cd/layout'),
-                // Comment this out until we have better form components
-                // "$filesSourcePath/resources/views/components/cd/form" => resource_path('/views/components/cd/form'),
             ], self::PACKAGE_NAME.':components');
 
             foreach (self::EXAMPLE_FILES as $exampleFile) {
@@ -120,15 +120,17 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 label: 'Project name',
                 options: array_filter([$basePathTitle, $composerTitle]),
                 required: true,
-                hint: 'This is used in the README and slugified for use in .env, composer.json, etc.',
+                hint: 'This is used in the README and examples, and slugified for use in .env, composer.json, etc.',
             );
 
-            $projectDescription = text(
-                label: 'Project description',
-                default: self::PROJECT_DESCRIPTION,
-                required: true,
-                hint: 'This is used in the README and composer.json.',
-            );
+            if ($installFiles) {
+                $projectDescription = text(
+                    label: 'Project description',
+                    default: self::PROJECT_DESCRIPTION,
+                    required: true,
+                    hint: 'This is used in the README and composer.json.',
+                );
+            }
         }
 
         // Confirm before proceeding
