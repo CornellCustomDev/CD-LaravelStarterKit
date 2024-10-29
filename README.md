@@ -13,7 +13,7 @@ A Cornell University CIT Custom Development starter kit and library for Laravel.
 
 The Starter Kit can be used as a starter kit for a new site or as a library for an existing site.
 
-### As a Starter Kit for  new Site
+### As a Starter Kit for a New Site
 
 Used as a starter kit, this package deploys the cwd_framework_lite infrastructure and standard configuration files. The
 steps below get from a fresh Laravel install to a working site.
@@ -44,10 +44,10 @@ steps below get from a fresh Laravel install to a working site.
    php artisan starterkit:install
    ```
    The `starterkit:install` command prompts for a set of install options:
-   - publish configured [project files](./project) to the base directory and update the `composer.json` file to match
+   - publish configured [project files](project) to the base directory and update the `composer.json` file to match
    - publish HTML/CSS/JS theme assets from [cwd_framework_lite](https://github.com/CU-CommunityApps/cwd_framework_lite) 
    - publish a set of [view components](https://laravel.com/docs/10.x/blade#layouts-using-components) that can be used to begin a layout 
-   - publish [example blade files](./resources/views/examples) to see usage of the layout
+   - publish [example blade files](resources/views/examples) to see usage of the layout
    >    **NOTE**: The "project files" option updates `.gitignore` so that the vendor directory is no longer excluded. The next commit will be large because it includes everything in the vendor directory.
    >   ```shell
    >    git add . && git commit -m "Starter Kit install"
