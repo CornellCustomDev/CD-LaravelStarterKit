@@ -2,6 +2,8 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects;
 
+use Illuminate\Http\Request;
+
 class ShibIdentity
 {
     public const SHIB_FIELDS = [
@@ -49,6 +51,15 @@ class ShibIdentity
             mail: $serverVars['mail'] ?? '',
             serverVars: $serverVars,
         );
+    }
+
+    public static function getRemoteUserId(Request $request): ?string
+    {
+        // If this is a local development environment, allow the local override.
+        $remote_user_override = app()->isLocal() ? config('cu-auth.remote_user_override') : null;
+
+        // Apache mod_shib populates the remote user variable if someone is logged in.
+        return $request->server(config('cu-auth.apache_shib_user_variable'), $remote_user_override);
     }
 
     public function isCornellIdP(): bool

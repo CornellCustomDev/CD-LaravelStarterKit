@@ -3,6 +3,7 @@
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature\CUAuth;
 
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers\AuthController;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 use CornellCustomDev\LaravelStarterKit\Tests\Feature\FeatureTestCase;
 use Illuminate\Http\Request;
@@ -47,7 +48,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest();
 
-        $response = (new ApacheShib)->handle($request, fn () => response('OK'));
+        $response = (new AuthController)->shibbolethLogin($request);
 
         $this->assertTrue($response->isForbidden());
     }
@@ -60,9 +61,9 @@ class ApacheShibTest extends FeatureTestCase
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest('new-user');
 
-        $response = (new ApacheShib)->handle($request, fn () => response('OK'));
+        $response = (new AuthController)->shibbolethLogin($request);
 
-        $this->assertTrue($response->isOk());
+        $this->assertTrue($response->isRedirect());
     }
 
     /**
@@ -73,7 +74,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->addCUAuthenticatedListener(authorized: false);
         $request = $this->getApacheAuthRequest('new-user');
 
-        $response = (new ApacheShib)->handle($request, fn () => response('OK'));
+        $response = (new AuthController)->shibbolethLogin($request);
 
         $this->assertTrue($response->isForbidden());
     }
@@ -87,7 +88,7 @@ class ApacheShibTest extends FeatureTestCase
 
         $response = (new ApacheShib)->handle(new Request, fn () => response('OK'));
 
-        $this->assertTrue($response->isForbidden());
+        $this->assertTrue($response->isRedirect());
     }
 
     /**
@@ -123,7 +124,8 @@ class ApacheShibTest extends FeatureTestCase
     {
         $this->get(route('test'))->assertOk();
         $this->get(route('test.require-auth'))->assertRedirect('/test/login');
-        $this->get(route('test.require-cu-auth'))->assertForbidden();
+        $this->get(route('test.require-cu-auth'))->assertRedirectContains(route('cu-auth.shibboleth-login'));
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertForbidden();
     }
 
     /** @define-route usesAuthRoutes */
@@ -133,7 +135,7 @@ class ApacheShibTest extends FeatureTestCase
         config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
 
         // No user is authenticated.
-        $this->get(route('test.require-cu-auth'))->assertForbidden();
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertForbidden();
 
         // Remote user is authenticated.
         $this->withServerVariables(['REMOTE_USER_TEST' => 'new-user']);
@@ -148,7 +150,7 @@ class ApacheShibTest extends FeatureTestCase
 
         // Override does not work in production environment.
         $this->app->detectEnvironment(fn () => 'production');
-        $this->get(route('test.require-cu-auth'))->assertForbidden();
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertForbidden();
 
         // Override works in local environment.
         $this->app->detectEnvironment(fn () => 'local');
@@ -162,7 +164,7 @@ class ApacheShibTest extends FeatureTestCase
         config(['cu-auth.allow_local_login' => true]);
 
         // No user is authenticated.
-        $this->get(route('test.require-cu-auth'))->assertForbidden();
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertForbidden();
 
         // Local user is authenticated.
         $this->actingAs($this->getTestUser());

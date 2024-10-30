@@ -24,5 +24,6 @@ class CUAuthServiceProvider extends ServiceProvider
                 __DIR__.'/../../config/cu-auth.php' => config_path('cu-auth.php'),
             ], StarterKitServiceProvider::PACKAGE_NAME.':'.self::INSTALL_CONFIG_TAG);
         }
+        $this->loadRoutesFrom(__DIR__.'/routes.php');
     }
 }

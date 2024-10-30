@@ -3,7 +3,7 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Middleware;
 
 use Closure;
-use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
+use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\ShibIdentity;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,36 +16,16 @@ class ApacheShib
             return $next($request);
         }
 
-        // If this is a local development environment, allow the local override.
-        $remote_user_override = app()->isLocal() ? config('cu-auth.remote_user_override') : null;
-
-        // Apache mod_shib populates the remote user variable if someone is logged in.
-        $userId = $request->server(config('cu-auth.apache_shib_user_variable'), $remote_user_override);
-
-        // If no remote user is found, return a 403.
-        if (empty($userId)) {
-            // @TODO: Do we need an unauthenticated event to match CUAuthenticated?
-            if (app()->runningInConsole()) {
-                return response('Forbidden', Response::HTTP_FORBIDDEN);
-            }
-            abort(403);
-        }
-
-        $userLookupField = config('cu-auth.user_lookup_field');
-
-        // If we are not using a user lookup field, the user is allowed.
-        if (empty($userLookupField)) {
+        if ($request->path() == route('cu-auth.shibboleth-login')) {
             return $next($request);
         }
 
-        event(new CUAuthenticated($userId, $userLookupField));
-
-        // If the authenticated user is not logged in, return a 403.
-        if (! auth()->check()) {
-            if (app()->runningInConsole()) {
-                return response('Forbidden', Response::HTTP_FORBIDDEN);
-            }
-            abort(403);
+        // If no remote user is found, authenticate.
+        $remoteUserId = ShibIdentity::getRemoteUserId($request);
+        if (empty($remoteUserId)) {
+            return redirect()->route('cu-auth.shibboleth-login', [
+                'redirect_uri' => $request->fullUrl(),
+            ]);
         }
 
         return $next($request);
