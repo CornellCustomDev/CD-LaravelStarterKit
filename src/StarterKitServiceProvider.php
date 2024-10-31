@@ -29,8 +29,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         '.env.example',
         '.gitignore',
         '.lando.yml',
-        // Comment this out until we need to include mod_shib config
-        // 'public/.htaccess',
+        'public/.htaccess',
     ];
 
     public const ASSET_FILES = [
@@ -47,7 +46,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         // 'resources/views/examples/form-example.blade.php',
     ];
 
-    public function boot()
+    public function boot(): void
     {
         parent::boot();
 
@@ -58,7 +57,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         if ($this->app->runningInConsole()) {
             foreach (self::INSTALL_FILES as $installFileName) {
                 $this->publishes([
-                    __DIR__."/../project/{$installFileName}" => base_path($installFileName),
+                    __DIR__."/../project/$installFileName" => base_path($installFileName),
                 ], self::PACKAGE_NAME.':files');
             }
 
@@ -91,7 +90,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
             });
     }
 
-    private function install(InstallCommand $command)
+    private function install(InstallCommand $command): void
     {
         info('Installing StarterKit...');
 
@@ -102,8 +101,9 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 'assets' => 'Theme assets from CWD Framework Lite',
                 'components' => 'View components (/resources/views/components/cd)',
                 'examples' => 'Example blade files',
+                'cu-auth' => 'CUAuth config',
             ],
-            default: ['files', 'assets', 'components'],
+            default: ['files', 'assets', 'components', 'cu-auth'],
             required: true,
             hint: 'Note: Any existing files will be replaced for the selected options.',
         ));
@@ -157,6 +157,10 @@ class StarterKitServiceProvider extends PackageServiceProvider
             $this->populatePlaceholders(self::EXAMPLE_FILES, $projectName);
         }
 
+        if ($install->contains('cu-auth')) {
+            $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_CONFIG_TAG);
+        }
+
         info('Installation complete.');
     }
 
@@ -165,7 +169,6 @@ class StarterKitServiceProvider extends PackageServiceProvider
         $command->call(
             command: 'vendor:publish',
             arguments: [
-                '--provider' => StarterKitServiceProvider::class,
                 '--tag' => $tag,
                 '--force' => true,
             ]
