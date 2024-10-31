@@ -59,7 +59,7 @@ class ShibIdentity
         $remote_user_override = app()->isLocal() ? config('cu-auth.remote_user_override') : null;
 
         // Apache mod_shib populates the remote user variable if someone is logged in.
-        return $request->server(config('cu-auth.apache_shib_user_variable'), $remote_user_override);
+        return $request->server(config('cu-auth.apache_shib_user_variable')) ?: $remote_user_override;
     }
 
     public function isCornellIdP(): bool
