@@ -19,6 +19,8 @@ return [
     */
     'apache_shib_user_variable' => env('APACHE_SHIB_USER_VARIABLE', 'REMOTE_USER'),
     'remote_user_override' => env('REMOTE_USER'),
+    'shibboleth_login_url' => env('SHIBBOLETH_LOGIN_URL', '/Shibboleth.sso/Login'),
+    'shibboleth_logout_url' => env('SHIBBOLETH_LOGOUT_URL', '/Shibboleth.sso/Logout'),
 
     /*
     |--------------------------------------------------------------------------
