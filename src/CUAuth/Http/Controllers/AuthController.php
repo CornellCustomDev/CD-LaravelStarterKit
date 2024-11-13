@@ -17,6 +17,7 @@ class AuthController extends BaseController
             return redirect()->to($redirectUri);
         }
 
+        // Use the Shibboleth login URL
         return redirect(config('cu-auth.shibboleth_login_url').'?target='.urlencode($redirectUri));
     }
 
@@ -27,8 +28,9 @@ class AuthController extends BaseController
             auth()->logout();
         }
 
-        // Redirect to the Shibboleth logout URL
-        $returnUrl = urlencode($request->query('return', '/'));
-        return redirect(config('cu-auth.shibboleth_logout_url').'?return='.$returnUrl);
+        $returnUrl = $request->query('return', '/');
+
+        // Use the Shibboleth logout URL
+        return redirect(config('cu-auth.shibboleth_logout_url').'?return='.urlencode($returnUrl));
     }
 }
