@@ -43,14 +43,15 @@ class ApacheShibTest extends FeatureTestCase
     /**
      * Remote user is NOT authenticated by Apache mod_shib.
      */
-    public function testCanFailAuthenticatingRemoteUser()
+    public function testRedirectsUnauthenticatedRemoteUser()
     {
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest();
 
         $response = (new AuthController)->shibbolethLogin($request);
 
-        $this->assertTrue($response->isForbidden());
+        $this->assertTrue($response->isRedirect());
+        $this->assertStringContainsString(config('cu-auth.shibboleth_login_url'), $response->getTargetUrl());
     }
 
     /**
@@ -60,10 +61,26 @@ class ApacheShibTest extends FeatureTestCase
     {
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest('new-user');
+        $request->query->set('redirect_uri', '/test');
 
         $response = (new AuthController)->shibbolethLogin($request);
 
         $this->assertTrue($response->isRedirect());
+        $this->assertStringContainsString('/test', $response->getTargetUrl());
+    }
+
+    public function testLogsOutRemoteUser()
+    {
+        $user = $this->getTestUser();
+        auth()->login($user);
+        $request = $this->getApacheAuthRequest($user->email);
+        $request->query->set('return', '/test');
+
+        $response = (new AuthController)->shibbolethLogout($request);
+
+        $this->assertTrue($response->isRedirect());
+        $this->assertStringContainsString(config('cu-auth.shibboleth_logout_url'), $response->getTargetUrl());
+        $this->assertStringContainsString(urlencode('/test'), $response->getTargetUrl());
     }
 
     /**
@@ -74,7 +91,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->addCUAuthenticatedListener(authorized: false);
         $request = $this->getApacheAuthRequest('new-user');
 
-        $response = (new AuthController)->shibbolethLogin($request);
+        $response = (new ApacheShib)->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isForbidden());
     }
@@ -115,6 +132,8 @@ class ApacheShibTest extends FeatureTestCase
             ->middleware('auth');
         // Laravel requires a route named "login" in auth login workflow.
         $router->get('/test/login', fn () => 'OK')->name('login');
+        // Fake shibboleth login url route.
+        $router->get(config('cu-auth.shibboleth_login_url'), fn () => 'ShibUrl')->name('cu-auth.shibboleth-login');
     }
 
     /**
@@ -125,7 +144,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->get(route('test'))->assertOk();
         $this->get(route('test.require-auth'))->assertRedirect('/test/login');
         $this->get(route('test.require-cu-auth'))->assertRedirectContains(route('cu-auth.shibboleth-login'));
-        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertForbidden();
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
     }
 
     /** @define-route usesAuthRoutes */
@@ -135,7 +154,7 @@ class ApacheShibTest extends FeatureTestCase
         config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
 
         // No user is authenticated.
-        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertForbidden();
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
 
         // Remote user is authenticated.
         $this->withServerVariables(['REMOTE_USER_TEST' => 'new-user']);
@@ -150,7 +169,7 @@ class ApacheShibTest extends FeatureTestCase
 
         // Override does not work in production environment.
         $this->app->detectEnvironment(fn () => 'production');
-        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertForbidden();
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
 
         // Override works in local environment.
         $this->app->detectEnvironment(fn () => 'local');
@@ -164,7 +183,7 @@ class ApacheShibTest extends FeatureTestCase
         config(['cu-auth.allow_local_login' => true]);
 
         // No user is authenticated.
-        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertForbidden();
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
 
         // Local user is authenticated.
         $this->actingAs($this->getTestUser());

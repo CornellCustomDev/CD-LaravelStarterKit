@@ -13,11 +13,9 @@ class AuthController extends BaseController
         $redirectUri = $request->query('redirect_uri', '/');
 
         if (ShibIdentity::getRemoteUserId($request)) {
-            // Successfully logged in so redirect to the originally intended URL
+            // Already logged in so redirect to the originally intended URL
             return redirect()->to($redirectUri);
         }
-
-        // TODO: Potentially need to track login attempts to prevent endless loops
 
         return redirect(config('cu-auth.shibboleth_login_url').'?target='.urlencode($redirectUri));
     }
