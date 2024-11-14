@@ -6,25 +6,21 @@ use Illuminate\Http\Request;
 
 class ShibIdentity
 {
+    // Shibboleth fields generally available from either cit or weill IdPs.
     public const SHIB_FIELDS = [
-        'Shib_Application_ID', // <vhost>
+        'Shib_Application_ID', // <vhost|applicationId>
         'Shib_Authentication_Instant', // YYYY-MM-DDT00:00:00.000Z
-        'Shib_Handler', // <SITE_URL>/Shibboleth.sso
-        'Shib_Identity_Provider', // https://shibidp.cit.cornell.edu/idp/shibboleth
+        'Shib_Identity_Provider', // https://shibidp.cit.cornell.edu/idp/shibboleth|https://login.weill.cornell.edu/idp
         'Shib_Session_Expires', // timestamp
         'Shib_Session_Inactivity', // timestamp
-        'cn', // John Doe
         'displayName', // John Doe
         'eduPersonAffiliations', // employee;member;staff
-        'eduPersonEntitlement',
-        'eduPersonPrimaryAffiliation', // staff
-        'eduPersonPrincipalName', // netid@cornell.edu
-        'eduPersonScopedAffiliation', // employee@cornell.edu;member@cornell.edu;staff@cornell.edu
-        'givenName',
-        'groups', // rg.cuniv.employee.staff;cu.employee;cit.roc;cit.iws.cs.dfa
+        'eduPersonPrincipalName', // netid@cornell.edu|cwid@med.cornell.edu
+        'eduPersonScopedAffiliation', // employee@[med.]cornell.edu;member@[med.]cornell.edu;staff@cornell.edu
+        'givenName', // John
         'mail', // alias email
-        'sn',
-        'uid', // netid
+        'sn', // Doe
+        'uid', // netid|cwid
     ];
 
     public function __construct(
@@ -47,8 +43,11 @@ class ShibIdentity
         return new ShibIdentity(
             idp: $serverVars['Shib_Identity_Provider'] ?? '',
             uid: $serverVars['uid'] ?? '',
-            displayName: $serverVars['displayName'] ?? '',
-            mail: $serverVars['mail'] ?? '',
+            displayName: $serverVars['displayName']
+                ?? $serverVars['cn']
+                ?? trim(($serverVars['givenName'] ?? '').' '.($serverVars['sn'] ?? '')),
+            mail: $serverVars['eduPersonPrincipalName']
+                ?? $serverVars['mail'] ?? '',
             serverVars: $serverVars,
         );
     }
@@ -69,24 +68,33 @@ class ShibIdentity
 
     public function isWeillIdP(): bool
     {
-        // TODO: Verify this is the correct domain
-        return str_contains($this->idp, 'med.cornell.edu');
+        return str_contains($this->idp, 'weill.cornell.edu');
     }
 
     /**
-     * Returns the primary email (netid@cornell.edu) if available, otherwise the alias email.
+     * Provides a uid that is unique across Cornell IdPs.
+     */
+    public function uniqueUid(): string
+    {
+        return match (true) {
+            $this->isCornellIdP() => $this->uid,
+            $this->isWeillIdP() => $this->uid.'_w',
+        };
+    }
+
+    /**
+     * Returns the primary email (netid@cornell.edu|cwid@med.cornell.edu) if available, otherwise the alias email.
      */
     public function email(): string
     {
-        // eduPersonPrincipal name is netid@cornell.edu, mail is alias email
-        return $this->serverVars['eduPersonPrincipalName'] ?? $this->mail;
+        return $this->mail;
     }
 
     /**
-     * Returns the display name if available, otherwise the common name.
+     * Returns the display name if available, otherwise the common name, fallback is "givenName sn".
      */
     public function name(): string
     {
-        return $this->serverVars['displayName'] ?? $this->serverVars['cn'] ?? '';
+        return $this->displayName;
     }
 }

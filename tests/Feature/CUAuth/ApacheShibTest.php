@@ -2,8 +2,10 @@
 
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature\CUAuth;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\ShibIdentity;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers\AuthController;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Listeners\AuthorizeUser;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 use CornellCustomDev\LaravelStarterKit\Tests\Feature\FeatureTestCase;
 use Illuminate\Http\Request;
@@ -16,7 +18,7 @@ class ApacheShibTest extends FeatureTestCase
      */
     private function addCUAuthenticatedListener(bool $authorized = true): void
     {
-        Event::listen(CUAuthenticated::class, function ($event) use ($authorized) {
+        Event::listen(CUAuthenticated::class, function (CUAuthenticated $event) use ($authorized) {
             if ($authorized) {
                 auth()->login($this->getTestUser($event->userId));
             } elseif (auth()->check()) {
@@ -202,6 +204,69 @@ class ApacheShibTest extends FeatureTestCase
         $response = (new ApacheShib)->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isOk());
+    }
 
+    public function testShibIdentity()
+    {
+        $shib = ShibIdentity::fromServerVars([
+            'Shib_Identity_Provider' => 'https://shibidp-test.cit.cornell.edu/idp/shibboleth',
+            'uid' => 'netid',
+            'mail' => 'netid@cornell.edu',
+        ]);
+
+        $this->assertTrue($shib->isCornellIdP());
+        $this->assertFalse($shib->isWeillIdP());
+        $this->assertEquals('netid', $shib->uniqueUid());
+        $this->assertEquals('netid@cornell.edu', $shib->email());
+    }
+
+    public function testShibWeillIdentity()
+    {
+        $shib = ShibIdentity::fromServerVars([
+            'Shib_Identity_Provider' => 'https://login-test.weill.cornell.edu/idp',
+            'uid' => 'cwid',
+            'mail' => 'cwid@med.cornell.edu',
+        ]);
+
+        $this->assertFalse($shib->isCornellIdP());
+        $this->assertTrue($shib->isWeillIdP());
+        $this->assertEquals('cwid_w', $shib->uniqueUid());
+        $this->assertEquals('cwid@med.cornell.edu', $shib->email());
+    }
+
+    public function testShibNames()
+    {
+        $shib = ShibIdentity::fromServerVars([
+            'displayName' => 'Test User',
+        ]);
+        $this->assertEquals('Test User', $shib->name());
+
+        $shib = ShibIdentity::fromServerVars([
+            'cn' => 'Test User',
+        ]);
+        $this->assertEquals('Test User', $shib->name());
+
+        $shib = ShibIdentity::fromServerVars([
+            'givenName' => 'Test',
+            'sn' => 'User',
+        ]);
+        $this->assertEquals('Test User', $shib->name());
+    }
+
+    public function testAuthorizeUser()
+    {
+        $serverVars = [
+            'Shib_Identity_Provider' => 'https://shibidp-test.cit.cornell.edu/idp/shibboleth',
+            'uid' => 'netid',
+            'displayName' => 'Test User',
+            'mail' => 'netid@cornell.edu',
+        ];
+        $event = new CUAuthenticated('netid@cornell.edu');
+        $listener = new AuthorizeUser;
+        $listener->handle($event, $serverVars);
+
+        $this->assertTrue(auth()->check());
+        $this->assertEquals('Test User', auth()->user()->name);
+        $this->assertEquals('netid@cornell.edu', auth()->user()->email);
     }
 }
