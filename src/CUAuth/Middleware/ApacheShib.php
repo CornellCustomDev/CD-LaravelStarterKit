@@ -22,20 +22,19 @@ class ApacheShib
             return $next($request);
         }
 
-        // remoteUserId will be set for authenticated users.
-        $remoteUserId = ShibIdentity::getRemoteUserId($request);
+        // remoteUser will be set for authenticated users.
+        $remoteUser = ShibIdentity::getRemoteUser($request);
 
         // Unauthenticated get redirected to Shibboleth login.
-        if (empty($remoteUserId)) {
+        if (empty($remoteUser)) {
             return redirect()->route('cu-auth.shibboleth-login', [
                 'redirect_uri' => $request->fullUrl(),
             ]);
         }
 
-        // When using a user lookup field, attempt to log in the user.
-        $userLookupField = config('cu-auth.user_lookup_field');
-        if ($userLookupField && ! auth()->check()) {
-            event(new CUAuthenticated($remoteUserId, $userLookupField));
+        // If requiring a local user, attempt to log in the user.
+        if (config('cu-auth.require_local_user') && ! auth()->check()) {
+            event(new CUAuthenticated($remoteUser));
 
             // If the authenticated user is still not logged in, return a 403.
             if (! auth()->check()) {

@@ -11,17 +11,17 @@ class AuthorizeUser
 {
     public function handle(CUAuthenticated $event, ?array $serverVars = null): void
     {
+        $shibboleth = ShibIdentity::fromServerVars($serverVars);
+
         // Look for a matching user.
         $userModel = config('auth.providers.users.model');
-        $userLookupField = $event->userLookupField;
-        $user = $userModel::firstWhere($userLookupField, $event->userId);
-        $shib = ShibIdentity::fromServerVars($serverVars);
+        $user = $userModel::firstWhere('email', $shibboleth->email());
 
         if (empty($user)) {
             // User does not exist, so create them.
             $user = new $userModel;
-            $user->name = $shib->name();
-            $user->email = $shib->email();
+            $user->name = $shibboleth->name();
+            $user->email = $shibboleth->email();
             $user->password = Str::random(32);
             $user->save();
             Log::info("AuthorizeUser: Created user $user->email with ID $user->id.");

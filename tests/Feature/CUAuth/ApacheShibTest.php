@@ -20,7 +20,7 @@ class ApacheShibTest extends FeatureTestCase
     {
         Event::listen(CUAuthenticated::class, function (CUAuthenticated $event) use ($authorized) {
             if ($authorized) {
-                auth()->login($this->getTestUser($event->userId));
+                auth()->login($this->getTestUser($event->remoteUser));
             } elseif (auth()->check()) {
                 auth()->logout();
             }
@@ -90,6 +90,7 @@ class ApacheShibTest extends FeatureTestCase
      */
     public function testCanFailAuthorizing()
     {
+        config(['cu-auth.require_local_user' => true]);
         $this->addCUAuthenticatedListener(authorized: false);
         $request = $this->getApacheAuthRequest('new-user');
 
@@ -195,7 +196,6 @@ class ApacheShibTest extends FeatureTestCase
     public function testRouteIsProtectedWithoutUserLookup()
     {
         config(['cu-auth.remote_user_override' => 'new-user']);
-        config(['cu-auth.user_lookup_field' => null]);
 
         // Require an authenticated user.
         $this->addCUAuthenticatedListener(authorized: false);

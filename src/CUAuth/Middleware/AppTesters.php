@@ -36,9 +36,9 @@ class AppTesters
             return $next($request);
         }
 
-        $userLookupField = config('cu-auth.user_lookup_field');
-        $userId = auth()->user()->$userLookupField ?? '';
-        if ($this->app_testers->contains($userId)) {
+        $appTestersField = config('cu-auth.app_testers_field');
+        $tester = auth()->user()->$appTestersField ?? '';
+        if ($this->app_testers->contains($tester)) {
             return $next($request);
         }
 

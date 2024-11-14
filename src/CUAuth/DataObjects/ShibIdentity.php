@@ -52,7 +52,7 @@ class ShibIdentity
         );
     }
 
-    public static function getRemoteUserId(Request $request): ?string
+    public static function getRemoteUser(Request $request): ?string
     {
         // If this is a local development environment, allow the local override.
         $remote_user_override = app()->isLocal() ? config('cu-auth.remote_user_override') : null;

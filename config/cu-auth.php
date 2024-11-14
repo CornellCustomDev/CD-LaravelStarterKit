@@ -6,19 +6,24 @@ return [
     | ApacheShib Configuration
     |--------------------------------------------------------------------------
     |
-    | ApacheShib retrieves the user's identifier from a server variable
-    | populated by the Apache shibboleth module (mod_shib).
+    | ApacheShib retrieves user data from server variables populated by the
+    | Apache shibboleth module (mod_shib).
     |
-    | The default variable is "REMOTE USER", but this may be different
-    | on some servers, e.g., REDIRECT_REMOTE_USER, depending on how PHP is
-    | installed.
+    | The default user variable is "REMOTE_USER", but this may differ depending
+    | on how mod_shib is configured.
     |
     | For local development without shibboleth, you can add
     | REMOTE_USER=<netid> to your project .env file to log in as that user.
     |
+    | To require a local user be logged in based on the remote  user, set
+    | REQUIRE_LOCAL_USER to true.
+    |
     */
     'apache_shib_user_variable' => env('APACHE_SHIB_USER_VARIABLE', 'REMOTE_USER'),
     'remote_user_override' => env('REMOTE_USER'),
+
+    'require_local_user' => env('REQUIRE_LOCAL_USER', false),
+
     'shibboleth_login_url' => env('SHIBBOLETH_LOGIN_URL', '/Shibboleth.sso/Login'),
     'shibboleth_logout_url' => env('SHIBBOLETH_LOGOUT_URL', '/Shibboleth.sso/Logout'),
 
@@ -28,20 +33,11 @@ return [
     |--------------------------------------------------------------------------
     |
     | Comma-separated list of users to allow in development environments.
+    | APP_TESTERS_FIELD is the field on the user model to compare against.
     |
     */
     'app_testers' => env('APP_TESTERS', ''),
-
-    /*
-    |--------------------------------------------------------------------------
-    | User Lookup Field
-    |--------------------------------------------------------------------------
-    |
-    | What field on the user model should be used to look up the user when
-    | firing CUAuthenticated events or comparing with APP_TESTERS?
-    |
-    */
-    'user_lookup_field' => env('USER_LOOKUP_FIELD', 'netid'),
+    'app_testers_field' => env('APP_TESTERS_FIELD', 'netid'),
 
     /*
     |--------------------------------------------------------------------------

@@ -27,7 +27,7 @@ class AppTestersTest extends FeatureTestCase
     public function testHandleWithAuthorizedUser()
     {
         Config::set('app.env', 'local');
-        Config::set('cu-auth.user_lookup_field', 'id');
+        Config::set('cu-auth.app_testers_field', 'id');
         Config::set('cu-auth.app_testers', 'a-user, test-user');
         Auth::shouldReceive('check')->andReturn(true);
         Auth::shouldReceive('user')->andReturn((object) ['id' => 'test-user']);
@@ -40,7 +40,7 @@ class AppTestersTest extends FeatureTestCase
     public function testHandleWithUnauthorizedUser()
     {
         Config::set('app.env', 'local');
-        Config::set('cu-auth.user_lookup_field', 'id');
+        Config::set('cu-auth.app_testers_field', 'id');
         Config::set('cu-auth.app_testers', 'test-user');
         Auth::shouldReceive('check')->andReturn(true);
         Auth::shouldReceive('user')->andReturn((object) ['id' => 'not-test-user']);
@@ -53,7 +53,7 @@ class AppTestersTest extends FeatureTestCase
     public function testHandleWithNoUser()
     {
         Config::set('app.env', 'local');
-        Config::set('cu-auth.user_lookup_field', 'id');
+        Config::set('cu-auth.app_testers_field', 'id');
         Config::set('cu-auth.app_testers', 'test-user');
         Auth::shouldReceive('check')->andReturn(false);
 
@@ -66,7 +66,7 @@ class AppTestersTest extends FeatureTestCase
     public function testHandleWithNoAppTesters()
     {
         Config::set('app.env', 'local');
-        Config::set('cu-auth.user_lookup_field', 'id');
+        Config::set('cu-auth.app_testers_field', 'id');
         Config::set('cu-auth.app_testers', '');
         Auth::shouldReceive('check')->andReturn(true);
         Auth::shouldReceive('user')->andReturn((object) ['id' => 'test-user']);

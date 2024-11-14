@@ -12,7 +12,7 @@ class AuthController extends BaseController
     {
         $redirectUri = $request->query('redirect_uri', '/');
 
-        if (ShibIdentity::getRemoteUserId($request)) {
+        if (ShibIdentity::getRemoteUser($request)) {
             // Already logged in so redirect to the originally intended URL
             return redirect()->to($redirectUri);
         }
