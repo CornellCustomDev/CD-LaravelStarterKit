@@ -5,6 +5,7 @@ namespace CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers;
 use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\ShibIdentity;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends BaseController
 {
@@ -23,12 +24,9 @@ class AuthController extends BaseController
 
     public function shibbolethLogout(Request $request)
     {
-        // If the user is logged in, log them out
-        if (auth()->check()) {
-            auth()->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-        }
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         $returnUrl = $request->query('return', '/');
 
