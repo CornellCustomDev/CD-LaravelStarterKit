@@ -26,6 +26,8 @@ class AuthController extends BaseController
         // If the user is logged in, log them out
         if (auth()->check()) {
             auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
         }
 
         $returnUrl = $request->query('return', '/');

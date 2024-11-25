@@ -35,6 +35,7 @@ class ApacheShibTest extends FeatureTestCase
         config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
 
         $request = new Request;
+        $request->setLaravelSession(app('session.store'));
         if ($remote_user !== null) {
             $request->server->set('REMOTE_USER_TEST', $remote_user);
         }
