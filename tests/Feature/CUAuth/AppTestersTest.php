@@ -59,8 +59,8 @@ class AppTestersTest extends FeatureTestCase
 
         $response = (new AppTesters)->handle(new Request, fn () => response('OK'));
 
-        // We cannot check against app_testers if there is no logged-in user.
-        $this->assertTrue($response->isOk());
+        // If there is no logged-in user, they should not be able to use the app.
+        $this->assertTrue($response->isForbidden());
     }
 
     public function testHandleWithNoAppTesters()
