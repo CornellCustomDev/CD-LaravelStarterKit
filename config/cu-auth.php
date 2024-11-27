@@ -15,7 +15,7 @@ return [
     | For local development without shibboleth, you can add
     | REMOTE_USER=<netid> to your project .env file to log in as that user.
     |
-    | To require a local user be logged in based on the remote  user, set
+    | To require a local user be logged in based on the remote user, set
     | REQUIRE_LOCAL_USER to true.
     |
     */

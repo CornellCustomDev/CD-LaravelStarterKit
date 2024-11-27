@@ -2,6 +2,11 @@
 
 Middleware for authorizing Laravel users.
 
+- [ApacheShib](#apacheshib) - Apache mod_shib integration
+- [AppTesters](#apptesters) - Limit access to users in the `APP_TESTERS` environment variable
+- [Local Login](#local-login) - Allow Laravel users to log in with a local username and password
+
+
 ## ApacheShib
 
 Use with Apache mod_shib to authorize users.
@@ -9,6 +14,7 @@ Use with Apache mod_shib to authorize users.
 ### Usage
 
 ```php
+// File: routes/web.php
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 
 Route::group(['middleware' => [ApacheShib::class]], function () {
@@ -17,18 +23,19 @@ Route::group(['middleware' => [ApacheShib::class]], function () {
 });
 ```
 
+> _See also: [shibboleth configuration]()._
+
 #### Simple authentication
 
-Use the ApacheShib middleware to require users to be authenticated via Shibboleth. 
-
-If all
-pages should be protected and all authenticated users should be authorized, no additional configuration is needed.
+If all pages should be protected and all authenticated users should be authorized, only the ApacheShib middleware is
+needed.
 
 #### User authorization
 
 If the site should only allow users who are in the database, set `REQUIRE_LOCAL_USER=true` in the `.env` file.
 
-```env
+```dotenv
+# File: .env
 REQUIRE_LOCAL_USER=true
 ```
 
@@ -43,20 +50,21 @@ as needed.
 
 ### Configuration
 
+See [config/cu-auth.php](../../config/cu-auth.php) for configuration options, all of which can be set with environment variables.
+
 To modify the default configuration, publish the configuration file:
 
 ```bash
 php artisan vendor:publish --tag=starterkit:cu-auth-config
 ```
 
-See [config/cu-auth.php](../../config/cu-auth.php) for configuration options.
-
 ### Local testing
 
 For local testing where mod_shib is not available, the `REMOTE_USER` environment variable can be set to simulate
 Shibboleth authentication. Note that `APP_ENV` must be set to "local" for this to work.
 
-```env
+```dotenv
+# File: .env
 APP_ENV=local
 REMOTE_USER=abc123
 ```
@@ -68,6 +76,7 @@ architecture supports sites that do not authenticate all pages and allows Larave
 
 Similarly, the route `cu-auth.shibboleth-logout` (`/shibboleth-logout`) is utilized for handling the logout process.
 
+
 ## AppTesters
 
 Limits non-production access to users in the `APP_TESTERS` environment variable.
@@ -75,6 +84,7 @@ Limits non-production access to users in the `APP_TESTERS` environment variable.
 ### Usage
 
 ```php
+// File: routes/web.php
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\AppTesters;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 
@@ -83,11 +93,19 @@ Route::group(['middleware' => [ApacheShib::class, AppTesters::class], function (
 });
 ```
 
+```dotenv
+# File: .env
+APP_TESTERS=abc123,def456
+```
+
 On non-production sites, the [AppTesters](Middleware/AppTesters.php) middleware checks the "APP_TESTERS" environment variable for a comma-separated list of users. If a user is logged in and not in the list, the middleware will return an HTTP_FORBIDDEN response.
 
 The field used for looking up users is `netid` by default. It is configured in [config/cu-auth.php](../../config/cu-auth.php) file as `app_testers_field`.
 
 
-
 ## Local Login
-_Note: For testing purposes, the environment variable "ALLOW_LOCAL_LOGIN" can be set to true to bypass the middleware for a currently authenticated user._
+For testing purposes, the environment variable "ALLOW_LOCAL_LOGIN" can be set to true to bypass the middleware for a currently authenticated user.
+```dotenv
+# File: .env
+ALLOW_LOCAL_LOGIN=true
+

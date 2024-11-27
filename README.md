@@ -11,7 +11,7 @@ A Cornell University CIT Custom Development starter kit and library for Laravel.
 
 ## Usage
 
-The Starter Kit can be used as a starter kit for a new site or as a library for an existing site.
+The Starter Kit can be used [as a starter kit for a new site](#as-a-starter-kit-for-a-new-site) or [as a library for an existing site](#as-a-library-for-an-existing-site).
 
 ### As a Starter Kit for a New Site
 
@@ -84,7 +84,7 @@ For an existing Laravel site, this package can be composer-required to provide t
 The libraries included in the Starter Kit are documented in their respective README files:
 
 - [Contact/PhoneNumber](src/Contact/README.md): A library for parsing and formatting a phone number.
-- [CUAuth](src/CUAuth/README.md): A middleware for authorizing Laravel users based on Apache mod_shib authentication.
+- [CUAuth](src/CUAuth/README.md): A middleware for authorizing Laravel users, mostly for Apache mod_shib authentication.
 
 ## Deploying a site
 Once a Media3 site has been created, you have confirmed you can reach the default site via a web browser, and you have access to the site login by command line, the code can be deployed.
