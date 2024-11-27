@@ -55,10 +55,16 @@ class ShibIdentity
     public static function getRemoteUser(Request $request): ?string
     {
         // If this is a local development environment, allow the local override.
-        $remote_user_override = app()->isLocal() ? config('cu-auth.remote_user_override') : null;
+        $remote_user_override = self::getRemoteUserOverride();
 
         // Apache mod_shib populates the remote user variable if someone is logged in.
         return $request->server(config('cu-auth.apache_shib_user_variable')) ?: $remote_user_override;
+    }
+
+    public static function getRemoteUserOverride(): ?string
+    {
+        // If this is a local development environment, allow the local override.
+        return app()->isLocal() ? config('cu-auth.remote_user_override') : null;
     }
 
     public function isCornellIdP(): bool

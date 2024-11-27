@@ -30,6 +30,11 @@ class AuthController extends BaseController
 
         $returnUrl = $request->query('return', '/');
 
+        if (ShibIdentity::getRemoteUserOverride()) {
+            // If using locally configured remote user, there is no Shibboleth logout
+            return redirect()->to($returnUrl);
+        }
+
         // Use the Shibboleth logout URL
         return redirect(config('cu-auth.shibboleth_logout_url').'?return='.urlencode($returnUrl));
     }
