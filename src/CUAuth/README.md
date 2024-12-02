@@ -23,7 +23,7 @@ Route::group(['middleware' => [ApacheShib::class]], function () {
 });
 ```
 
-> _See also: [shibboleth configuration]()._
+> _See also: [shibboleth configuration](SHIBBOLETH.md)._
 
 #### Simple authentication
 
