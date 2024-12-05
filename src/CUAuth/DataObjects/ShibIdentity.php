@@ -27,7 +27,7 @@ class ShibIdentity
         public readonly string $idp,
         public readonly string $uid,
         public readonly string $displayName = '',
-        public readonly string $mail = '',
+        public readonly string $email = '',
         public readonly array $serverVars = [],
     ) {}
 
@@ -46,14 +46,18 @@ class ShibIdentity
             displayName: $serverVars['displayName']
                 ?? $serverVars['cn']
                 ?? trim(($serverVars['givenName'] ?? '').' '.($serverVars['sn'] ?? '')),
-            mail: $serverVars['eduPersonPrincipalName']
+            email: $serverVars['eduPersonPrincipalName']
                 ?? $serverVars['mail'] ?? '',
             serverVars: $serverVars,
         );
     }
 
-    public static function getRemoteUser(Request $request): ?string
+    public static function getRemoteUser(?Request $request = null): ?string
     {
+        if (empty($request)) {
+            $request = app('request');
+        }
+
         // If this is a local development environment, allow the local override.
         $remote_user_override = self::getRemoteUserOverride();
 
@@ -93,7 +97,7 @@ class ShibIdentity
      */
     public function email(): string
     {
-        return $this->mail;
+        return $this->email;
     }
 
     /**
