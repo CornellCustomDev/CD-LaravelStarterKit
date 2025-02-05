@@ -4,7 +4,7 @@
     bootstrap="vendor/autoload.php"
     colors="true"
     testdox="true"
-    xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
     cacheDirectory=".phpunit.cache"
 >
     <source>

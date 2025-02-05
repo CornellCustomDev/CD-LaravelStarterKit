@@ -2,6 +2,7 @@
 
 namespace CornellCustomDev\LaravelStarterKit\Tests;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
@@ -16,6 +17,7 @@ class TestCase extends OrchestraTestCase
     protected function getPackageProviders($app): array
     {
         return [
+            CUAuthServiceProvider::class,
             StarterKitServiceProvider::class,
         ];
     }
