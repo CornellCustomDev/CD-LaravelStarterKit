@@ -26,4 +26,10 @@ class TestCase extends OrchestraTestCase
     {
         // perform environment setup
     }
+
+    protected function getBasePath(): string
+    {
+        // TODO: Remove this when https://github.com/orchestral/testbench-core/issues/311 is addressed.
+        return static::applicationBasePath();
+    }
 }
