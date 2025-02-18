@@ -50,6 +50,7 @@ class InstallStarterKitTest extends TestCase
             haystack: File::get("$basePath/resources/views/examples/cd-index.blade.php")
         );
         $this->assertFileExists("$basePath/config/cu-auth.php");
+        $this->assertFileExists("$basePath/config/php-saml.php");
     }
 
     public function testDeletesInstallFilesBeforeTests()
@@ -139,13 +140,14 @@ class InstallStarterKitTest extends TestCase
         File::deleteDirectory("$basePath/resources/views/components");
         File::deleteDirectory("$basePath/resources/views/examples");
         File::delete("$basePath/config/cu-auth.php");
+        File::delete("$basePath/config/php-saml.php");
     }
 
     private function installAll(string $projectName, string $projectDescription): PendingCommand
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples', 'cu-auth',
+                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
@@ -203,5 +205,36 @@ class InstallStarterKitTest extends TestCase
 
         $userVariable = config('cu-auth.apache_shib_user_variable');
         $this->assertEquals($testVariable, $userVariable);
+    }
+
+    public function testCanInstallPhpSamlConfigFiles()
+    {
+        $basePath = $this->getBasePath();
+        $defaultVariable = 'https://localhost';
+        $testVariable = 'https://test.example.com';
+        // Make sure we have config values
+        $this->refreshApplication();
+
+        $entityId = config('php-saml.sp.entityId');
+        $this->assertEquals($defaultVariable.'/saml', $entityId);
+
+        $this->artisan(
+            command: 'vendor:publish',
+            parameters: [
+                '--tag' => StarterKitServiceProvider::PACKAGE_NAME.':'.CUAuthServiceProvider::INSTALL_PHP_SAML_TAG,
+                '--force' => true,
+            ])
+            ->assertSuccessful();
+
+        // Update the config file with a test value for php-saml.sp.entityId.
+        File::put("$basePath/config/php-saml.php", str_replace(
+            "'$defaultVariable'",
+            "'$testVariable'",
+            File::get("$basePath/config/php-saml.php")
+        ));
+        $this->refreshApplication();
+
+        $entityId = config('php-saml.sp.entityId');
+        $this->assertEquals($testVariable.'/saml', $entityId);
     }
 }

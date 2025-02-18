@@ -9,7 +9,8 @@
     "spatie/laravel-package-tools": "^1.18",
     "cubear/cwd_framework_lite": "^3.0",
     "propaganistas/laravel-phone": "^5.3",
-    "giggsey/locale": "^2.7"
+    "giggsey/locale": "^2.7",
+    "onelogin/php-saml": "^4.2"
   },
   "require-dev": {
     "orchestra/testbench": "^8.31",

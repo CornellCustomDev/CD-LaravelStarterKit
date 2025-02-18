@@ -102,6 +102,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 'components' => 'View components (/resources/views/components/cd)',
                 'examples' => 'Example blade files',
                 'cu-auth' => 'CUAuth config',
+                'php-saml' => 'php-saml config',
             ],
             default: ['files', 'assets', 'components', 'cu-auth'],
             required: true,
@@ -159,6 +160,10 @@ class StarterKitServiceProvider extends PackageServiceProvider
 
         if ($install->contains('cu-auth')) {
             $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_CONFIG_TAG);
+        }
+
+        if ($install->contains('php-saml')) {
+            $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_PHP_SAML_TAG);
         }
 
         info('Installation complete.');
