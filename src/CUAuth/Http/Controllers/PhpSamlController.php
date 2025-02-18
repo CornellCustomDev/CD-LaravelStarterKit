@@ -2,12 +2,10 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers;
 
-use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\SamlIdentity;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\SamlIdentityManager;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use OneLogin\Saml2\AuthnRequest;
-use OneLogin\Saml2\Settings;
 
 class PhpSamlController
 {
@@ -16,19 +14,12 @@ class PhpSamlController
         $redirectUri = $request->query('redirect_uri', '/');
 
         // If already logged in, return to the originally intended URL
-        if (SamlIdentity::getRemoteUser()) {
+        if (SamlIdentityManager::getIdentity()) {
             return redirect()->to($redirectUri);
         }
 
-        $settings = new Settings(config('php-saml'));
-        $authRequest = new AuthnRequest($settings);
-        $ssoUrl = url(
-            path: $settings->getIdPData()['singleSignOnService']['url'],
-            parameters: [
-                'SAMLRequest' => $authRequest->getRequest(),
-                'RelayState' => $redirectUri,
-            ]
-        );
+        // Redirect to the SSO URL
+        $ssoUrl = SamlIdentityManager::getSsoUrl($redirectUri);
 
         return redirect($ssoUrl);
     }
@@ -47,20 +38,10 @@ class PhpSamlController
 
     public function samlACS(Request $request)
     {
-        $auth = new \OneLogin\Saml2\Auth(settings: config('php-saml'));
-        $auth->processResponse();
-        $errors = $auth->getErrors();
-        if (! empty($errors)) {
-            throw new Exception('SAML Response Errors: '.implode(', ', $errors));
-        }
-        if (! $auth->isAuthenticated()) {
-            throw new Exception('SAML Response not authenticated');
-        }
-
-        // Store the user in the session
-        $samlIdentity = SamlIdentity::fromAuth($auth);
-        if ($samlIdentity) {
-            $request->session()->put('samlIdentity', $samlIdentity);
+        try {
+            SamlIdentityManager::storeIdentity();
+        } catch (Exception $e) {
+            return response($e->getMessage(), 403);
         }
 
         // Redirect to the originally intended URL
@@ -71,12 +52,7 @@ class PhpSamlController
 
     public function samlMetadata(Request $request)
     {
-        $settings = new Settings(config('php-saml'), true);
-        $metadata = $settings->getSPMetadata();
-        $errors = $settings->validateMetadata($metadata);
-        if (! empty($errors)) {
-            throw new Exception('Invalid SP metadata: '.implode(', ', $errors));
-        }
+        $metadata = SamlIdentityManager::getMetadata();
 
         return response($metadata)->withHeaders([
             'Content-Type' => 'text/xml',

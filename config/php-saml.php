@@ -135,7 +135,7 @@ return [
         | Refer to lib/Saml2/Constants.php for supported formats.
         |
         */
-        'NameIDFormat' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+        'NameIDFormat' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
 
         /*
         |--------------------------------------------------------------------------
@@ -188,7 +188,7 @@ return [
         | Identifier of the IdP entity (must be a URI).
         |
         */
-        'entityId' => env('SAML_IDP_ENTITYID', $idp_entity_id),
+        'entityId' => env('SAML_IDP_ENTITYID', $idp_entity_id.'/shibboleth'),
 
         /*
         |----------------------------------------------------------------------

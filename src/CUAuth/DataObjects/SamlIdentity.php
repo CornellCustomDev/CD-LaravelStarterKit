@@ -2,12 +2,21 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects;
 
-use OneLogin\Saml2\Auth;
-
 class SamlIdentity
 {
     public const SAML_FIELDS = [
-        'uid',
+        'eduPersonPrimaryAffiliation', // staff|student|...
+        'cn', // John R. Doe
+        'eduPersonPrincipalName', // netid@cornell.edu
+        'givenName', // John
+        'sn', // Doe
+        'displayName', // John Doe
+        'uid', // netid
+        'eduPersonOrgDN', // o=Cornell University,c=US
+        'mail', // alias? email
+        'eduPersonAffiliation', // ['employee', 'staff', ...]
+        'eduPersonScopedAffiliation', // [employee@cornell.edu, staff@cornell.edu, ...]
+        'eduPersonEntitlement',
     ];
 
     public function __construct(
@@ -18,26 +27,27 @@ class SamlIdentity
         public readonly array $attributes = [],
     ) {}
 
-    public static function fromAuth(Auth $auth): ?self
+    /**
+     * Provides a uid that is unique across Cornell IdPs.
+     */
+    public function uniqueUid(): string
     {
-        if (! $auth->isAuthenticated()) {
-            return null;
-        }
-
-        $attributes = $auth->getAttributes();
-
-        return new SamlIdentity(
-            idp: '',
-            uid: $attributes['uid'][0] ?? '',
-            displayName: $attributes['displayName'][0] ?? '',
-            email: $attributes['email'][0] ?? '',
-            attributes: $attributes,
-        );
+        return $this->uid;
     }
 
-    public static function getRemoteUser(): ?string
+    /**
+     * Returns the primary email (netid@cornell.edu|cwid@med.cornell.edu) if available, otherwise the alias email.
+     */
+    public function email(): string
     {
-        // TODO: Implement getRemoteUser() method
-        return null;
+        return $this->email;
+    }
+
+    /**
+     * Returns the display name if available, otherwise the common name, fallback is "givenName sn".
+     */
+    public function name(): string
+    {
+        return $this->displayName;
     }
 }

@@ -3,8 +3,8 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Middleware;
 
 use Closure;
-use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\SamlIdentity;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\SamlIdentityManager;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +23,7 @@ class PhpSaml
         }
 
         // remoteUser will be set for authenticated users.
-        $remoteUser = SamlIdentity::getRemoteUser();
+        $remoteUser = SamlIdentityManager::getIdentity()?->uniqueUid();
 
         // Unauthenticated get redirected to saml login.
         if (empty($remoteUser)) {
