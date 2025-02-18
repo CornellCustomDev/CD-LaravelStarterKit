@@ -4,6 +4,7 @@ $sp_base_url = env('SAML_BASEURL', env('APP_URL', 'https://localhost'));
 $idp_entity_id = (env('APP_ENV') == 'production')
     ? 'https://shibidp.cit.cornell.edu/idp'
     : 'https://shibidp-test.cit.cornell.edu/idp';
+$cert_path = storage_path(env('SAML_CERT_PATH', 'app/keys'));
 
 return [
     /*
@@ -148,14 +149,10 @@ return [
         |
         */
         'x509cert' => trim(
-            file_exists(storage_path(env('SAML_SP_CERT_PATH', 'app/keys/sp_cert.pem')))
-                ? file_get_contents(storage_path(env('SAML_SP_CERT_PATH', 'app/keys/sp_cert.pem')))
-                : ''
+            file_exists($cert_path.'/sp_cert.pem') ? file_get_contents($cert_path.'/sp_cert.pem') : ''
         ),
         'privateKey' => trim(
-            file_exists(storage_path(env('SAML_SP_PRIVATE_KEY_PATH', 'app/keys/sp_key.pem')))
-                ? file_get_contents(storage_path(env('SAML_SP_PRIVATE_KEY_PATH', 'app/keys/sp_key.pem')))
-                : ''
+            file_exists($cert_path.'/sp_key.pem') ? file_get_contents($cert_path.'/sp_key.pem') : ''
         ),
 
         /*
@@ -234,9 +231,7 @@ return [
         |
         */
         'x509cert' => trim(
-            file_exists(storage_path(env('SAML_IDP_CERT_PATH', 'app/keys/idp_cert.pem')))
-                ? file_get_contents(storage_path(env('SAML_IDP_CERT_PATH', 'app/keys/idp_cert.pem')))
-                : ''
+            file_exists($cert_path.'/idp_cert.pem') ? file_get_contents($cert_path.'/idp_cert.pem') : ''
         ),
 
         /*
