@@ -50,7 +50,7 @@ class InstallStarterKitTest extends TestCase
             haystack: File::get("$basePath/resources/views/examples/cd-index.blade.php")
         );
         $this->assertFileExists("$basePath/config/cu-auth.php");
-        $this->assertFileExists("$basePath/config/php-saml.php");
+        $this->assertFileExists("$basePath/config/php-saml-toolkit.php");
         $this->assertFileExists("$basePath/storage/app/keys/idp_cert.pem");
     }
 
@@ -141,7 +141,7 @@ class InstallStarterKitTest extends TestCase
         File::deleteDirectory("$basePath/resources/views/components");
         File::deleteDirectory("$basePath/resources/views/examples");
         File::delete("$basePath/config/cu-auth.php");
-        File::delete("$basePath/config/php-saml.php");
+        File::delete("$basePath/config/php-saml-toolkit.php");
         File::deleteDirectory("$basePath/storage/app/keys");
     }
 
@@ -149,7 +149,7 @@ class InstallStarterKitTest extends TestCase
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml', 'certs',
+                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml-toolkit', 'certs',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
@@ -217,7 +217,7 @@ class InstallStarterKitTest extends TestCase
         // Make sure we have config values
         $this->refreshApplication();
 
-        $entityId = config('php-saml.sp.entityId');
+        $entityId = config('php-saml-toolkit.sp.entityId');
         $this->assertEquals($defaultVariable.'/saml', $entityId);
 
         $this->artisan(
@@ -228,15 +228,15 @@ class InstallStarterKitTest extends TestCase
             ])
             ->assertSuccessful();
 
-        // Update the config file with a test value for php-saml.sp.entityId.
-        File::put("$basePath/config/php-saml.php", str_replace(
+        // Update the config file with a test value for php-saml-tookkit.sp.entityId.
+        File::put("$basePath/config/php-saml-toolkit.php", str_replace(
             "'$defaultVariable'",
             "'$testVariable'",
-            File::get("$basePath/config/php-saml.php")
+            File::get("$basePath/config/php-saml-toolkit.php")
         ));
         $this->refreshApplication();
 
-        $entityId = config('php-saml.sp.entityId');
+        $entityId = config('php-saml-toolkit.sp.entityId');
         $this->assertEquals($testVariable.'/saml', $entityId);
     }
 

@@ -19,7 +19,7 @@ class PhpSamlTest extends FeatureTestCase
 
     public function testDefaultConfigSettingsAreValid()
     {
-        $settings = config('php-saml');
+        $settings = config('php-saml-toolkit');
         $settings['idp']['x509cert'] = 'TEST';
 
         // Assert no exceptions or errors

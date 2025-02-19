@@ -3,6 +3,26 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Identity Manager
+    |--------------------------------------------------------------------------
+    |
+    | The identity manager to use for user authentication.
+    |
+    */
+    'identity_manager' => CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Require Local User
+    |--------------------------------------------------------------------------
+    |
+    | Require a local user be logged in based on the remote user.
+    |
+    */
+    'require_local_user' => env('REQUIRE_LOCAL_USER', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | ApacheShib Configuration
     |--------------------------------------------------------------------------
     |
@@ -15,14 +35,9 @@ return [
     | For local development without shibboleth, you can add
     | REMOTE_USER=<netid> to your project .env file to log in as that user.
     |
-    | To require a local user be logged in based on the remote user, set
-    | REQUIRE_LOCAL_USER to true.
-    |
     */
     'apache_shib_user_variable' => env('APACHE_SHIB_USER_VARIABLE', 'REMOTE_USER'),
     'remote_user_override' => env('REMOTE_USER'),
-
-    'require_local_user' => env('REQUIRE_LOCAL_USER', false),
 
     'shibboleth_login_url' => env('SHIBBOLETH_LOGIN_URL', '/Shibboleth.sso/Login'),
     'shibboleth_logout_url' => env('SHIBBOLETH_LOGOUT_URL', '/Shibboleth.sso/Logout'),

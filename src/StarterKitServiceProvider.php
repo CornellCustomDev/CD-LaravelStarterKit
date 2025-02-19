@@ -102,7 +102,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 'components' => 'View components (/resources/views/components/cd)',
                 'examples' => 'Example blade files',
                 'cu-auth' => 'CUAuth config',
-                'php-saml' => 'php-saml config',
+                'php-saml-toolkit' => 'php-saml config',
                 'certs' => 'SAML certificates (download IdP cert, generate SP keypair)',
             ],
             default: ['files', 'assets', 'components', 'cu-auth'],
@@ -163,7 +163,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
             $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_CONFIG_TAG);
         }
 
-        if ($install->contains('php-saml')) {
+        if ($install->contains('php-saml-toolkit')) {
             $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_PHP_SAML_TAG);
         }
 

@@ -108,7 +108,7 @@ php artisan vendor:publish --tag=starterkit:cu-auth-config
 To modify the PHP SAML Toolkit configuration, publish the configuration file:
 
 ```bash
-php artisan vendor:publish --tag=starterkit:php-saml-config
+php artisan vendor:publish --tag=starterkit:php-saml-toolkit-config
 ```
 
 

@@ -9,7 +9,7 @@ class CUAuthServiceProvider extends ServiceProvider
 {
     const INSTALL_CONFIG_TAG = 'cu-auth-config';
 
-    const INSTALL_PHP_SAML_TAG = 'php-saml-config';
+    const INSTALL_PHP_SAML_TAG = 'php-saml-toolkit-config';
 
     public function register(): void
     {
@@ -18,8 +18,8 @@ class CUAuthServiceProvider extends ServiceProvider
             key: 'cu-auth',
         );
         $this->mergeConfigFrom(
-            path: __DIR__.'/../../config/php-saml.php',
-            key: 'php-saml',
+            path: __DIR__.'/../../config/php-saml-toolkit.php',
+            key: 'php-saml-toolkit',
         );
     }
 
@@ -30,7 +30,7 @@ class CUAuthServiceProvider extends ServiceProvider
                 __DIR__.'/../../config/cu-auth.php' => config_path('cu-auth.php'),
             ], StarterKitServiceProvider::PACKAGE_NAME.':'.self::INSTALL_CONFIG_TAG);
             $this->publishes([
-                __DIR__.'/../../config/php-saml.php' => config_path('php-saml.php'),
+                __DIR__.'/../../config/php-saml-toolkit.php' => config_path('php-saml-toolkit.php'),
             ], StarterKitServiceProvider::PACKAGE_NAME.':'.self::INSTALL_PHP_SAML_TAG);
         }
         $this->loadRoutesFrom(__DIR__.'/routes.php');
