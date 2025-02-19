@@ -40,7 +40,7 @@ return [
     | For example: http://sp.example.com/ or http://example.com/sp/
     |
     */
-    'baseurl' => env('SAML_BASEURL', $sp_base_url.'/saml'),
+    'baseurl' => env('SAML_BASEURL', $sp_base_url),
 
     /*
     |--------------------------------------------------------------------------
