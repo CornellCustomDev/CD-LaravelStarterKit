@@ -2,10 +2,10 @@
 
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature\CUAuth;
 
-use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\ShibIdentity;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
-use CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers\AuthController;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers\ApacheShibController;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Listeners\AuthorizeUser;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 use CornellCustomDev\LaravelStarterKit\Tests\Feature\FeatureTestCase;
 use Illuminate\Http\Request;
@@ -51,7 +51,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest();
 
-        $response = (new AuthController)->shibbolethLogin($request);
+        $response = (new ApacheShibController)->shibbolethLogin($request);
 
         $this->assertTrue($response->isRedirect());
         $this->assertStringContainsString(config('cu-auth.shibboleth_login_url'), $response->getTargetUrl());
@@ -66,7 +66,7 @@ class ApacheShibTest extends FeatureTestCase
         $request = $this->getApacheAuthRequest('new-user');
         $request->query->set('redirect_uri', '/test');
 
-        $response = (new AuthController)->shibbolethLogin($request);
+        $response = (new ApacheShibController)->shibbolethLogin($request);
 
         $this->assertTrue($response->isRedirect());
         $this->assertStringContainsString('/test', $response->getTargetUrl());
@@ -79,7 +79,7 @@ class ApacheShibTest extends FeatureTestCase
         $request = $this->getApacheAuthRequest($user->email);
         $request->query->set('return', '/test');
 
-        $response = (new AuthController)->shibbolethLogout($request);
+        $response = (new ApacheShibController)->shibbolethLogout($request);
 
         $this->assertTrue($response->isRedirect());
         $this->assertStringContainsString(config('cu-auth.shibboleth_logout_url'), $response->getTargetUrl());
@@ -209,7 +209,7 @@ class ApacheShibTest extends FeatureTestCase
 
     public function testShibIdentity()
     {
-        $shib = ShibIdentity::fromServerVars([
+        $shib = ShibIdentityManager::fromServerVars([
             'Shib_Identity_Provider' => 'https://shibidp-test.cit.cornell.edu/idp/shibboleth',
             'uid' => 'netid',
             'mail' => 'netid@cornell.edu',
@@ -223,7 +223,7 @@ class ApacheShibTest extends FeatureTestCase
 
     public function testShibWeillIdentity()
     {
-        $shib = ShibIdentity::fromServerVars([
+        $shib = ShibIdentityManager::fromServerVars([
             'Shib_Identity_Provider' => 'https://login-test.weill.cornell.edu/idp',
             'uid' => 'cwid',
             'mail' => 'cwid@med.cornell.edu',
@@ -237,17 +237,17 @@ class ApacheShibTest extends FeatureTestCase
 
     public function testShibNames()
     {
-        $shib = ShibIdentity::fromServerVars([
+        $shib = ShibIdentityManager::fromServerVars([
             'displayName' => 'Test User',
         ]);
         $this->assertEquals('Test User', $shib->name());
 
-        $shib = ShibIdentity::fromServerVars([
+        $shib = ShibIdentityManager::fromServerVars([
             'cn' => 'Test User',
         ]);
         $this->assertEquals('Test User', $shib->name());
 
-        $shib = ShibIdentity::fromServerVars([
+        $shib = ShibIdentityManager::fromServerVars([
             'givenName' => 'Test',
             'sn' => 'User',
         ]);

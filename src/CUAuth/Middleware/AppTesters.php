@@ -3,7 +3,9 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Middleware;
 
 use Closure;
-use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\ShibIdentity;
+use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\SamlIdentityManager;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -36,8 +38,10 @@ class AppTesters
             $appTestersField = config('cu-auth.app_testers_field');
             $tester = auth()->user()->$appTestersField ?? '';
         } else {
-            // @TODO Should this be calling a generalized method, not Shibboleth specific?
-            $tester = ShibIdentity::getRemoteUser($request);
+            $tester = match (config('cu-auth.identity_manager')) {
+                CUAuthServiceProvider::APACHE_SHIB => ShibIdentityManager::getRemoteUser($request),
+                CUAuthServiceProvider::PHP_SAML => SamlIdentityManager::getIdentity()?->uniqueUid(),
+            };
         }
 
         if ($this->app_testers->contains($tester)) {

@@ -3,8 +3,8 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Middleware;
 
 use Closure;
-use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\ShibIdentity;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +23,7 @@ class ApacheShib
         }
 
         // remoteUser will be set for authenticated users.
-        $remoteUser = ShibIdentity::getRemoteUser($request);
+        $remoteUser = ShibIdentityManager::getRemoteUser($request);
 
         // Unauthenticated get redirected to Shibboleth login.
         if (empty($remoteUser)) {

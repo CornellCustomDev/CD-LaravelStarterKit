@@ -9,7 +9,10 @@ return [
     | The identity manager to use for user authentication.
     |
     */
-    'identity_manager' => CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager::class,
+    'identity_manager' => match (env('CU_AUTH_IDENTITY_MANGER', 'apache-shib')) {
+        'apache-shib' => CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider::APACHE_SHIB,
+        'php-saml' => CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider::PHP_SAML,
+    },
 
     /*
     |--------------------------------------------------------------------------

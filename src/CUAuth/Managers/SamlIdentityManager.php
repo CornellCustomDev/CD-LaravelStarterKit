@@ -2,7 +2,7 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Managers;
 
-use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\SamlIdentity;
+use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\RemoteIdentity;
 use Exception;
 use Illuminate\Support\Arr;
 use OneLogin\Saml2\Auth;
@@ -11,14 +11,27 @@ use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\ValidationError;
 
-use function session;
-
 class SamlIdentityManager
 {
+    public const SAML_FIELDS = [
+        'eduPersonPrimaryAffiliation', // staff|student|...
+        'cn', // John R. Doe
+        'eduPersonPrincipalName', // netid@cornell.edu
+        'givenName', // John
+        'sn', // Doe
+        'displayName', // John Doe
+        'uid', // netid
+        'eduPersonOrgDN', // o=Cornell University,c=US
+        'mail', // alias? email
+        'eduPersonAffiliation', // ['employee', 'staff', ...]
+        'eduPersonScopedAffiliation', // [employee@cornell.edu, staff@cornell.edu, ...]
+        'eduPersonEntitlement',
+    ];
+
     /**
      * @throws Exception
      */
-    public static function storeIdentity(): ?SamlIdentity
+    public static function storeIdentity(): ?RemoteIdentity
     {
         try {
             $auth = new Auth(settings: config('php-saml'));
@@ -37,7 +50,7 @@ class SamlIdentityManager
 
         $attributes = $auth->getAttributesWithFriendlyName();
 
-        $samlIdentity = new SamlIdentity(
+        $remoteIdentity = new RemoteIdentity(
             idp: 'cit.cornell.edu',
             uid: $attributes['uid'][0] ?? '',
             displayName: $attributes['displayName'][0]
@@ -45,20 +58,20 @@ class SamlIdentityManager
                 ?? trim(($attributes['givenName'][0] ?? '').' '.($attributes['sn'][0] ?? '')),
             email: $attributes['eduPersonPrincipalName'][0]
                 ?? $attributes['mail'][0] ?? '',
-            attributes: $attributes,
+            data: $attributes,
         );
 
-        session()->put('samlIdentity', $samlIdentity);
+        session()->put('remoteIdentity', $remoteIdentity);
 
-        return $samlIdentity;
+        return $remoteIdentity;
     }
 
-    public static function getIdentity(): ?SamlIdentity
+    public static function getIdentity(): ?RemoteIdentity
     {
-        /** @var SamlIdentity|null $samlIdentity */
-        $samlIdentity = session()->get('samlIdentity');
+        /** @var RemoteIdentity|null $remoteIdentity */
+        $remoteIdentity = session()->get('remoteIdentity');
 
-        return $samlIdentity;
+        return $remoteIdentity;
     }
 
     /**

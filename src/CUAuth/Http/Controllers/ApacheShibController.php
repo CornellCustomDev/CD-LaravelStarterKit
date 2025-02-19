@@ -2,18 +2,18 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers;
 
-use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\ShibIdentity;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Auth;
 
-class AuthController extends BaseController
+class ApacheShibController extends BaseController
 {
     public function shibbolethLogin(Request $request)
     {
         $redirectUri = $request->query('redirect_uri', '/');
 
-        if (ShibIdentity::getRemoteUser($request)) {
+        if (ShibIdentityManager::getRemoteUser($request)) {
             // Already logged in so redirect to the originally intended URL
             return redirect()->to($redirectUri);
         }
@@ -30,7 +30,7 @@ class AuthController extends BaseController
 
         $returnUrl = $request->query('return', '/');
 
-        if (ShibIdentity::getRemoteUserOverride()) {
+        if (ShibIdentityManager::getRemoteUserOverride()) {
             // If using locally configured remote user, there is no Shibboleth logout
             return redirect()->to($returnUrl);
         }

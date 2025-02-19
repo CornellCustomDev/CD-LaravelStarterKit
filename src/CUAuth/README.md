@@ -93,7 +93,7 @@ as needed.
 
 > [AuthorizeUser](Listeners/AuthorizeUser.php) is provided as a starting point for handling the CUAuthenticated event.
 > It is simplistic and should be replaced with a site-specific implementation in the site code base. It demonstrates 
-> retrieving user data from [ShibIdentity](DataObjects/ShibIdentity.php) and creating a user if they do not exist. 
+> retrieving user data from [ShibIdentityManager](Managers/ShibIdentityManager.php) and creating a user if they do not exist. 
 
 ## Configuration
 

@@ -2,37 +2,25 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects;
 
-class SamlIdentity
+class RemoteIdentity
 {
-    public const SAML_FIELDS = [
-        'eduPersonPrimaryAffiliation', // staff|student|...
-        'cn', // John R. Doe
-        'eduPersonPrincipalName', // netid@cornell.edu
-        'givenName', // John
-        'sn', // Doe
-        'displayName', // John Doe
-        'uid', // netid
-        'eduPersonOrgDN', // o=Cornell University,c=US
-        'mail', // alias? email
-        'eduPersonAffiliation', // ['employee', 'staff', ...]
-        'eduPersonScopedAffiliation', // [employee@cornell.edu, staff@cornell.edu, ...]
-        'eduPersonEntitlement',
-    ];
-
     public function __construct(
         public readonly string $idp,
         public readonly string $uid,
         public readonly string $displayName = '',
         public readonly string $email = '',
-        public readonly array $attributes = [],
+        public readonly array $data = [],
     ) {}
 
     /**
-     * Provides a uid that is unique across Cornell IdPs.
+     * Provides an id that is unique across Cornell IdPs.
      */
     public function uniqueUid(): string
     {
-        return $this->uid;
+        return match (true) {
+            $this->isWeillIdP() => $this->uid.'_w',
+            default => $this->uid,
+        };
     }
 
     /**
@@ -49,5 +37,15 @@ class SamlIdentity
     public function name(): string
     {
         return $this->displayName;
+    }
+
+    public function isCornellIdP(): bool
+    {
+        return str_contains($this->idp, 'cit.cornell.edu');
+    }
+
+    public function isWeillIdP(): bool
+    {
+        return str_contains($this->idp, 'weill.cornell.edu');
     }
 }

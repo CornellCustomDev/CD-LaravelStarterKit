@@ -11,6 +11,10 @@ class CUAuthServiceProvider extends ServiceProvider
 
     const INSTALL_PHP_SAML_TAG = 'php-saml-toolkit-config';
 
+    const APACHE_SHIB = 'apache-shib';
+
+    const PHP_SAML = 'php-saml';
+
     public function register(): void
     {
         $this->mergeConfigFrom(
