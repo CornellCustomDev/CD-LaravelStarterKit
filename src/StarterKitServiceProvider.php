@@ -103,6 +103,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 'examples' => 'Example blade files',
                 'cu-auth' => 'CUAuth config',
                 'php-saml' => 'php-saml config',
+                'certs' => 'SAML certificates (download IdP cert, generate SP keypair)',
             ],
             default: ['files', 'assets', 'components', 'cu-auth'],
             required: true,
@@ -166,6 +167,10 @@ class StarterKitServiceProvider extends PackageServiceProvider
             $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_PHP_SAML_TAG);
         }
 
+        if ($install->contains('certs')) {
+            $this->buildSamlCerts();
+        }
+
         info('Installation complete.');
     }
 
@@ -216,5 +221,44 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
 
         File::put($composerFile, json_encode($composerConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    }
+
+    private function buildSamlCerts(): void
+    {
+        $certPath = storage_path('app/keys');
+        File::ensureDirectoryExists($certPath);
+
+        $idpCertPath = $certPath.'/idp_cert.pem';
+        if (! File::exists($idpCertPath)) {
+            $certDownloadUrl = app()->isProduction()
+                ? 'https://shibidp.cit.cornell.edu/cornell-idp.cer'
+                : 'https://shibidp-test.cit.cornell.edu/cornell-idp.cer';
+            $idpCertContents = app()->runningUnitTests()
+                ? 'test-idp-cert-contents'  // Dummy content for testing
+                : file_get_contents($certDownloadUrl);
+            File::put($idpCertPath, $idpCertContents);
+        }
+
+        $spKeyPath = $certPath.'/sp_key.pem';
+        $spCertPath = $certPath.'/sp_cert.pem';
+        if (! File::exists($spKeyPath) || ! File::exists($spCertPath)) {
+            $config = [
+                'digest_alg' => 'sha256',
+                'private_key_bits' => 2048,
+                'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            ];
+
+            // Generate a new private key
+            $key = openssl_pkey_new($config);
+            openssl_pkey_export_to_file($key, $spKeyPath);
+
+            // Generate a certificate signing request (CSR)
+            $csr = openssl_csr_new([], $key, $config);
+
+            // Self-sign the CSR to create a certificate valid for 10 years
+            $days = (int) now()->diffInDays(now()->addYears(10));
+            $certificate = openssl_csr_sign($csr, null, $key, $days, $config);
+            openssl_x509_export_to_file($certificate, $spCertPath);
+        }
     }
 }

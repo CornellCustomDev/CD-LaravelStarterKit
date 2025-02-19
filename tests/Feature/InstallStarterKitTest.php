@@ -51,6 +51,7 @@ class InstallStarterKitTest extends TestCase
         );
         $this->assertFileExists("$basePath/config/cu-auth.php");
         $this->assertFileExists("$basePath/config/php-saml.php");
+        $this->assertFileExists("$basePath/storage/app/keys/idp_cert.pem");
     }
 
     public function testDeletesInstallFilesBeforeTests()
@@ -141,13 +142,14 @@ class InstallStarterKitTest extends TestCase
         File::deleteDirectory("$basePath/resources/views/examples");
         File::delete("$basePath/config/cu-auth.php");
         File::delete("$basePath/config/php-saml.php");
+        File::deleteDirectory("$basePath/storage/app/keys");
     }
 
     private function installAll(string $projectName, string $projectDescription): PendingCommand
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml',
+                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml', 'certs',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
@@ -236,5 +238,35 @@ class InstallStarterKitTest extends TestCase
 
         $entityId = config('php-saml.sp.entityId');
         $this->assertEquals($testVariable.'/saml', $entityId);
+    }
+
+    public function testCanInstallSamlCerts()
+    {
+        $basePath = $this->getApplicationBasePath();
+        $idpCertPath = "$basePath/storage/app/keys/idp_cert.pem";
+        $spKeyPath = "$basePath/storage/app/keys/sp_key.pem";
+        $spCertPath = "$basePath/storage/app/keys/sp_cert.pem";
+        $this->assertFileDoesNotExist($idpCertPath);
+        $this->assertFileDoesNotExist($spKeyPath);
+        $this->assertFileDoesNotExist($spCertPath);
+
+        $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
+            ->expectsQuestion('What would you like to install or update?', ['certs'])
+            ->expectsConfirmation('Proceed with installation?', 'yes')
+            ->expectsOutputToContain('Installation complete.')
+            ->assertSuccessful();
+
+        $this->assertFileExists($idpCertPath);
+        $this->assertStringContainsString('test-idp-cert-contents', File::get($idpCertPath));
+
+        $this->assertFileExists($spKeyPath);
+        $keyFile = File::get($spKeyPath);
+        $this->assertStringContainsString('-----BEGIN PRIVATE KEY-----', $keyFile);
+        $this->assertStringContainsString('-----END PRIVATE KEY-----', $keyFile);
+
+        $this->assertFileExists($spCertPath);
+        $certFile = File::get($spCertPath);
+        $this->assertStringContainsString('-----BEGIN CERTIFICATE-----', $certFile);
+        $this->assertStringContainsString('-----END CERTIFICATE-----', $certFile);
     }
 }
