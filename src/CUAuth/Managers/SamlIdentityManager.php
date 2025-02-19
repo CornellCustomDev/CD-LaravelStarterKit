@@ -34,7 +34,7 @@ class SamlIdentityManager
     public static function storeIdentity(): ?RemoteIdentity
     {
         try {
-            $auth = new Auth(settings: config('php-saml'));
+            $auth = new Auth(settings: config('php-saml-toolkit'));
             $auth->processResponse();
         } catch (Error|ValidationError $e) {
             throw new Exception('SAML Response Error: '.$e->getMessage());
@@ -80,7 +80,7 @@ class SamlIdentityManager
     public static function getSsoUrl(string $redirectUri): string
     {
         try {
-            $settings = new Settings(config('php-saml'));
+            $settings = new Settings(config('php-saml-toolkit'));
         } catch (Exception $e) {
             throw new Exception('Invalid SAML settings: '.$e->getMessage());
         }
@@ -101,7 +101,7 @@ class SamlIdentityManager
     public static function getMetadata(): string
     {
         try {
-            $settings = new Settings(config('php-saml'), true);
+            $settings = new Settings(config('php-saml-toolkit'), true);
             $metadata = $settings->getSPMetadata();
             $errors = $settings->validateMetadata($metadata);
         } catch (Exception $e) {
