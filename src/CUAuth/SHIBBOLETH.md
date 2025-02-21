@@ -21,7 +21,7 @@ Key elements (can be set up for any Media 3 server):
             ...
         </Sessions>
         <MetadataProvider url="https://shibidp.cit.cornell.edu/idp/shibboleth" backingFilePath="cornellidp.xml" ... />
-        <MetadataProvider url="https://shibidp-test.cit.cornell.edu/idp/shibboleth" backingFilePath="cornell-idp.xml" ... />
+        <MetadataProvider url="https://shibidp-test.cit.cornell.edu/idp/shibboleth" backingFilePath="cornell-test-idp.xml" ... />
         <MetadataProvider url="https://login.weill.cornell.edu/idp/saml2/idp/metadata.php" backingFilePath="weill-idp.xml" ... />
         <MetadataProvider url="https://login-test.weill.cornell.edu/idp/saml2/idp/metadata.php" backingFilePath="weill-test-idp.xml" ... />
         ...

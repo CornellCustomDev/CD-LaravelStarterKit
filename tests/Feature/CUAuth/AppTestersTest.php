@@ -2,6 +2,7 @@
 
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature\CUAuth;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\AppTesters;
 use CornellCustomDev\LaravelStarterKit\Tests\Feature\FeatureTestCase;
 use Illuminate\Http\Request;
@@ -16,11 +17,11 @@ class AppTestersTest extends FeatureTestCase
 
         Config::set('app.env', 'local');
         Config::set('cu-auth.app_testers', 'test-user');
-        $response = (new AppTesters)->handle(new Request, fn () => response('OK'));
+        $response = (new AppTesters(new ShibIdentityManager))->handle(new Request, fn () => response('OK'));
         $this->assertTrue($response->isForbidden());
 
         Config::set('app.env', 'production');
-        $response = (new AppTesters)->handle(new Request, fn () => response('OK'));
+        $response = (new AppTesters(new ShibIdentityManager))->handle(new Request, fn () => response('OK'));
         $this->assertTrue($response->isOk());
     }
 
@@ -32,7 +33,7 @@ class AppTestersTest extends FeatureTestCase
         Auth::shouldReceive('check')->andReturn(true);
         Auth::shouldReceive('user')->andReturn((object) ['id' => 'test-user']);
 
-        $response = (new AppTesters)->handle(new Request, fn () => response('OK'));
+        $response = (new AppTesters(new ShibIdentityManager))->handle(new Request, fn () => response('OK'));
 
         $this->assertTrue($response->isOk());
     }
@@ -45,7 +46,7 @@ class AppTestersTest extends FeatureTestCase
         Auth::shouldReceive('check')->andReturn(true);
         Auth::shouldReceive('user')->andReturn((object) ['id' => 'not-test-user']);
 
-        $response = (new AppTesters)->handle(new Request, fn () => response('OK'));
+        $response = (new AppTesters(new ShibIdentityManager))->handle(new Request, fn () => response('OK'));
 
         $this->assertTrue($response->isForbidden());
     }
@@ -57,7 +58,7 @@ class AppTestersTest extends FeatureTestCase
         Config::set('cu-auth.app_testers', 'test-user');
         Auth::shouldReceive('check')->andReturn(false);
 
-        $response = (new AppTesters)->handle(new Request, fn () => response('OK'));
+        $response = (new AppTesters(new ShibIdentityManager))->handle(new Request, fn () => response('OK'));
 
         // If there is no logged-in user, they should not be able to use the app.
         $this->assertTrue($response->isForbidden());
@@ -71,7 +72,7 @@ class AppTestersTest extends FeatureTestCase
         Auth::shouldReceive('check')->andReturn(true);
         Auth::shouldReceive('user')->andReturn((object) ['id' => 'test-user']);
 
-        $response = (new AppTesters)->handle(new Request, fn () => response('OK'));
+        $response = (new AppTesters(new ShibIdentityManager))->handle(new Request, fn () => response('OK'));
 
         // If there are no app testers, anyone can use the app.
         $this->assertTrue($response->isOk());

@@ -29,7 +29,7 @@ class InstallStarterKitTest extends TestCase
 
     public function testCanRunAllInstallations()
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $themeName = StarterKitServiceProvider::THEME_NAME;
         $projectName = 'Test Project';
 
@@ -50,12 +50,14 @@ class InstallStarterKitTest extends TestCase
             haystack: File::get("$basePath/resources/views/examples/cd-index.blade.php")
         );
         $this->assertFileExists("$basePath/config/cu-auth.php");
+        $this->assertFileExists("$basePath/config/php-saml-toolkit.php");
+        $this->assertFileExists("$basePath/storage/app/keys/idp_cert.pem");
     }
 
     public function testDeletesInstallFilesBeforeTests()
     {
         // Confirm no files are in the resources/views directory other than the default welcome.blade.php file
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $files = File::files("$basePath/resources/views");
         $this->assertCount(1, $files);
         $this->assertEquals('welcome.blade.php', $files[0]->getFilename());
@@ -109,7 +111,7 @@ class InstallStarterKitTest extends TestCase
             ]
         );
         // Confirm that the readme file has the default content
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $readmeContents = File::get("$basePath/README.md");
         $this->assertStringContainsString(':project_name', $readmeContents);
 
@@ -128,7 +130,7 @@ class InstallStarterKitTest extends TestCase
 
     private function resetInstallFiles(): void
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $themeName = StarterKitServiceProvider::THEME_NAME;
 
         // Delete files from previous tests
@@ -139,13 +141,15 @@ class InstallStarterKitTest extends TestCase
         File::deleteDirectory("$basePath/resources/views/components");
         File::deleteDirectory("$basePath/resources/views/examples");
         File::delete("$basePath/config/cu-auth.php");
+        File::delete("$basePath/config/php-saml-toolkit.php");
+        File::deleteDirectory("$basePath/storage/app/keys");
     }
 
     private function installAll(string $projectName, string $projectDescription): PendingCommand
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples', 'cu-auth',
+                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml-toolkit', 'certs',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
@@ -155,7 +159,7 @@ class InstallStarterKitTest extends TestCase
 
     private function assertContentUpdated(string $projectName, string $projectDescription): void
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
 
         $readmeContents = File::get("$basePath/README.md");
         $this->assertStringContainsString($projectName, $readmeContents);
@@ -176,7 +180,7 @@ class InstallStarterKitTest extends TestCase
 
     public function testCanInstallCUAuthConfigFiles()
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $defaultVariable = 'REMOTE_USER';
         $testVariable = 'REDIRECT_REMOTE_USER';
         // Make sure we have config values
@@ -203,5 +207,70 @@ class InstallStarterKitTest extends TestCase
 
         $userVariable = config('cu-auth.apache_shib_user_variable');
         $this->assertEquals($testVariable, $userVariable);
+    }
+
+    public function testCanInstallPhpSamlConfigFiles()
+    {
+        $basePath = $this->getApplicationBasePath();
+        $defaultVariable = 'https://localhost';
+        $testVariable = 'https://test.example.com';
+        // Make sure we have config values
+        $this->refreshApplication();
+
+        $entityId = config('php-saml-toolkit.sp.entityId');
+        $this->assertEquals($defaultVariable.'/sso', $entityId);
+
+        $this->artisan(
+            command: 'vendor:publish',
+            parameters: [
+                '--tag' => StarterKitServiceProvider::PACKAGE_NAME.':'.CUAuthServiceProvider::INSTALL_PHP_SAML_TAG,
+                '--force' => true,
+            ])
+            ->assertSuccessful();
+
+        // Update the config file with a test value for php-saml-tookkit.sp.entityId.
+        File::put("$basePath/config/php-saml-toolkit.php", str_replace(
+            "'$defaultVariable'",
+            "'$testVariable'",
+            File::get("$basePath/config/php-saml-toolkit.php")
+        ));
+        $this->refreshApplication();
+
+        $entityId = config('php-saml-toolkit.sp.entityId');
+        $this->assertEquals($testVariable.'/sso', $entityId);
+    }
+
+    public function testCanInstallSamlCerts()
+    {
+        $basePath = $this->getApplicationBasePath();
+        $idpCertPath = "$basePath/storage/app/keys/idp_cert.pem";
+        $spKeyPath = "$basePath/storage/app/keys/sp_key.pem";
+        $spCertPath = "$basePath/storage/app/keys/sp_cert.pem";
+        $this->assertFileDoesNotExist($idpCertPath);
+        $this->assertFileDoesNotExist($spKeyPath);
+        $this->assertFileDoesNotExist($spCertPath);
+
+        $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
+            ->expectsQuestion('What would you like to install or update?', ['certs'])
+            ->expectsConfirmation('Proceed with installation?', 'yes')
+            ->expectsOutputToContain('Installation complete.')
+            ->assertSuccessful();
+
+        $this->assertFileExists($idpCertPath);
+        $this->assertStringContainsString('test-idp-cert-contents', File::get($idpCertPath));
+
+        $this->assertFileExists($spKeyPath);
+        $keyFile = File::get($spKeyPath);
+        $this->assertStringContainsString('-----BEGIN PRIVATE KEY-----', $keyFile);
+        $this->assertStringContainsString('-----END PRIVATE KEY-----', $keyFile);
+
+        $this->assertFileExists($spCertPath);
+        $certFile = File::get($spCertPath);
+        $this->assertStringContainsString('-----BEGIN CERTIFICATE-----', $certFile);
+        $this->assertStringContainsString('-----END CERTIFICATE-----', $certFile);
+
+        // Confirm we can get the certs via the config
+        config(['php-saml-toolkit.idp.x509cert' => File::get("$basePath/storage/app/keys/idp_cert.pem")]);
+        $this->assertStringContainsString('test-idp-cert-contents', config('php-saml-toolkit.idp.x509cert'));
     }
 }

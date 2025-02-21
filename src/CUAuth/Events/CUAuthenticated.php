@@ -10,6 +10,6 @@ class CUAuthenticated
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public readonly string $remoteUser,
+        public readonly ?string $remoteUser = null,
     ) {}
 }

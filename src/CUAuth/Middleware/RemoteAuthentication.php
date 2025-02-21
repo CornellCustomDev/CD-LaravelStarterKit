@@ -3,13 +3,17 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Middleware;
 
 use Closure;
-use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\ShibIdentity;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\IdentityManager;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ApacheShib
+class RemoteAuthentication
 {
+    public function __construct(
+        protected IdentityManager $identityManager
+    ) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         // If local login is allowed and someone is authenticated, let them through.
@@ -17,24 +21,23 @@ class ApacheShib
             return $next($request);
         }
 
-        // Shibboleth login route is allowed to pass through.
-        if ($request->path() == route('cu-auth.shibboleth-login')) {
+        $passThrough = in_array($request->path(), [
+            route('cu-auth.sso-login'),
+            route('cu-auth.sso-logout'),
+            route('cu-auth.sso-acs'),
+            route('cu-auth.sso-metadata'),
+        ]);
+        if ($passThrough) {
             return $next($request);
         }
 
-        // remoteUser will be set for authenticated users.
-        $remoteUser = ShibIdentity::getRemoteUser($request);
-
-        // Unauthenticated get redirected to Shibboleth login.
-        if (empty($remoteUser)) {
-            return redirect()->route('cu-auth.shibboleth-login', [
-                'redirect_uri' => $request->fullUrl(),
-            ]);
+        if (! $this->identityManager->hasIdentity($request)) {
+            return redirect()->route('cu-auth.sso-login', ['redirect_url' => $request->fullUrl()]);
         }
 
         // If requiring a local user, attempt to log in the user.
         if (config('cu-auth.require_local_user') && ! auth()->check()) {
-            event(new CUAuthenticated($remoteUser));
+            event(new CUAuthenticated);
 
             // If the authenticated user is still not logged in, return a 403.
             if (! auth()->check()) {
