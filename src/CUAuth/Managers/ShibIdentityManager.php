@@ -94,6 +94,11 @@ class ShibIdentityManager implements IdentityManager
         return $url.'?'.$query;
     }
 
+    public function getMetadata(): ?string
+    {
+        return null;
+    }
+
     public static function getRemoteUser(?Request $request = null): ?string
     {
         if (empty($request)) {

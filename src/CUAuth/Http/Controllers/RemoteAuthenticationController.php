@@ -3,6 +3,7 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers;
 
 use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\IdentityManager;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +26,7 @@ class RemoteAuthenticationController extends BaseController
             return redirect()->to($redirectUrl);
         }
 
-        // Use the Shibboleth login URL
+        // Use the SSO login URL
         $ssoUrl = $this->identityManager->getSsoUrl($redirectUrl);
 
         return redirect($ssoUrl);
@@ -39,8 +40,36 @@ class RemoteAuthenticationController extends BaseController
 
         $returnUrl = $request->query('return', '/');
 
+        // Note this may just redirect to the returnUrl
         $sloUrl = $this->identityManager->getSloUrl($returnUrl);
 
         return redirect($sloUrl);
+    }
+
+    public function acs(Request $request)
+    {
+        try {
+            $this->identityManager->storeIdentity();
+        } catch (Exception $e) {
+            return response($e->getMessage(), 403);
+        }
+
+        // Redirect to the originally intended URL
+        $returnUrl = $request->input('RelayState', '/');
+
+        return redirect()->to($returnUrl);
+    }
+
+    public function metadata(Request $request)
+    {
+        $metadata = $this->identityManager->getMetadata();
+
+        if (empty($metadata)) {
+            return response('Metadata not available.', 404);
+        }
+
+        return response($metadata)->withHeaders([
+            'Content-Type' => 'text/xml',
+        ]);
     }
 }

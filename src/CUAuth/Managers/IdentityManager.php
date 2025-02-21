@@ -16,4 +16,6 @@ interface IdentityManager
     public function getSsoUrl(string $redirectUrl): string;
 
     public function getSloUrl(string $returnUrl): string;
+
+    public function getMetadata(): ?string;
 }

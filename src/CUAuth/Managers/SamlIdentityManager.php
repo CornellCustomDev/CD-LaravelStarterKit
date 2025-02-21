@@ -116,7 +116,7 @@ class SamlIdentityManager implements IdentityManager
     /**
      * @throws Exception
      */
-    public static function getMetadata(): string
+    public function getMetadata(): ?string
     {
         try {
             $settings = new Settings(config('php-saml-toolkit'), true);

@@ -72,7 +72,7 @@ return [
         */
         'assertionConsumerService' => [
             // URL where the <Response> from the IdP will be returned.
-            'url' => $sp_base_url.'/sso-acs',
+            'url' => $sp_base_url.'/sso/acs',
             // SAML protocol binding to be used. Only HTTP-POST is supported.
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
         ],

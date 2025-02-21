@@ -6,13 +6,12 @@ return [
     | Identity Manager
     |--------------------------------------------------------------------------
     |
-    | The identity manager to use for user authentication.
+    | The identity manager to use for user authentication. Options are:
+    | - apache-shib: Apache mod_shib
+    | - php-saml: OneLogin SAML PHP Toolkit
     |
     */
-    'identity_manager' => match (env('CU_AUTH_IDENTITY_MANGER', 'apache-shib')) {
-        'apache-shib' => CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider::APACHE_SHIB,
-        'php-saml' => CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider::PHP_SAML,
-    },
+    'identity_manager' => env('CU_AUTH_IDENTITY_MANGER', 'apache-shib'),
 
     /*
     |--------------------------------------------------------------------------
