@@ -10,12 +10,9 @@ use Illuminate\Support\Str;
 
 class AuthorizeUser
 {
-    protected IdentityManager $identityManager;
-
-    public function __construct(IdentityManager $identityManager)
-    {
-        $this->identityManager = $identityManager;
-    }
+    public function __construct(
+        protected IdentityManager $identityManager
+    ) {}
 
     public function handle(CUAuthenticated $event, ?RemoteIdentity $remoteIdentity = null): void
     {

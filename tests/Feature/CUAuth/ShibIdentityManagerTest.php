@@ -3,7 +3,7 @@
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature\CUAuth;
 
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
-use CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers\RemoteAuthenticationController;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers\AuthController;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Listeners\AuthorizeUser;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\RemoteAuthentication;
@@ -51,7 +51,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest();
 
-        $response = (new RemoteAuthenticationController(new ShibIdentityManager))
+        $response = (new AuthController(new ShibIdentityManager))
             ->login($request);
 
         $this->assertTrue($response->isRedirect());
@@ -67,7 +67,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $request = $this->getApacheAuthRequest('new-user');
         $request->query->set('redirect_url', '/test');
 
-        $response = (new RemoteAuthenticationController(new ShibIdentityManager))
+        $response = (new AuthController(new ShibIdentityManager))
             ->login($request);
 
         $this->assertTrue($response->isRedirect());
@@ -81,7 +81,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $request = $this->getApacheAuthRequest($user->email);
         $request->query->set('return', '/test');
 
-        $response = (new RemoteAuthenticationController(new ShibIdentityManager))
+        $response = (new AuthController(new ShibIdentityManager))
             ->logout($request);
 
         $this->assertTrue($response->isRedirect());

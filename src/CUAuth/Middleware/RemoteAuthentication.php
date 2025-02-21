@@ -10,17 +10,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RemoteAuthentication
 {
-    protected IdentityManager $identityManager;
+    public function __construct(
+        protected IdentityManager $identityManager
+    ) {}
 
-    public function __construct(IdentityManager $identityManager)
+    public function handle(Request $request, Closure $next): Response
     {
-        $this->identityManager = $identityManager;
-    }
-
-    public function handle(Request $request, Closure $next, ?IdentityManager $identityManager = null): Response
-    {
-        $identityManager = $identityManager ?? $this->identityManager;
-
         // If local login is allowed and someone is authenticated, let them through.
         if (config('cu-auth.allow_local_login') && auth()->check()) {
             return $next($request);
@@ -36,7 +31,7 @@ class RemoteAuthentication
             return $next($request);
         }
 
-        if (! $identityManager->hasIdentity($request)) {
+        if (! $this->identityManager->hasIdentity($request)) {
             return redirect()->route('cu-auth.sso-login', ['redirect_url' => $request->fullUrl()]);
         }
 

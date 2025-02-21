@@ -8,14 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Auth;
 
-class RemoteAuthenticationController extends BaseController
+class AuthController extends BaseController
 {
-    protected IdentityManager $identityManager;
-
-    public function __construct(IdentityManager $identityManager)
-    {
-        $this->identityManager = $identityManager;
-    }
+    public function __construct(
+        protected IdentityManager $identityManager
+    ) {}
 
     public function login(Request $request)
     {

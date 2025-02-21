@@ -13,15 +13,12 @@ class AppTesters
 {
     private Collection $app_testers;
 
-    private IdentityManager $identityManager;
-
-    public function __construct(IdentityManager $identityManager)
-    {
+    public function __construct(
+        protected IdentityManager $identityManager
+    ) {
         $this->app_testers = Str::of(config('cu-auth.app_testers'))
             ->split('/[\s,]+/')
             ->filter();
-
-        $this->identityManager = $identityManager;
     }
 
     public function handle(Request $request, Closure $next): Response
