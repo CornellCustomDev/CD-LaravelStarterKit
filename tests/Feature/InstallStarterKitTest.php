@@ -268,5 +268,9 @@ class InstallStarterKitTest extends TestCase
         $certFile = File::get($spCertPath);
         $this->assertStringContainsString('-----BEGIN CERTIFICATE-----', $certFile);
         $this->assertStringContainsString('-----END CERTIFICATE-----', $certFile);
+
+        // Confirm we can get the certs via the config
+        config(['php-saml-toolkit.idp.x509cert' => File::get("$basePath/storage/app/keys/idp_cert.pem")]);
+        $this->assertStringContainsString('test-idp-cert-contents', config('php-saml-toolkit.idp.x509cert'));
     }
 }

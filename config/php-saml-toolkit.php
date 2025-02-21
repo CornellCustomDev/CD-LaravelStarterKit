@@ -1,7 +1,7 @@
 <?php
 
 $sp_base_url = env('SAML_BASEURL', env('APP_URL', 'https://localhost'));
-$idp_entity_id = (env('APP_ENV') == 'production')
+$idp_base_url = (env('APP_ENV') == 'production')
     ? 'https://shibidp.cit.cornell.edu/idp'
     : 'https://shibidp-test.cit.cornell.edu/idp';
 $cert_path = storage_path(env('SAML_CERT_PATH', 'app/keys'));
@@ -40,7 +40,7 @@ return [
     | For example: http://sp.example.com/ or http://example.com/sp/
     |
     */
-    'baseurl' => env('SAML_BASEURL', $sp_base_url),
+    'baseurl' => $sp_base_url,
 
     /*
     |--------------------------------------------------------------------------
@@ -72,7 +72,7 @@ return [
         */
         'assertionConsumerService' => [
             // URL where the <Response> from the IdP will be returned.
-            'url' => env('SAML_SP_ACS_URL', $sp_base_url.'/saml-acs'),
+            'url' => $sp_base_url.'/saml-acs',
             // SAML protocol binding to be used. Only HTTP-POST is supported.
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
         ],
@@ -185,7 +185,7 @@ return [
         | Identifier of the IdP entity (must be a URI).
         |
         */
-        'entityId' => env('SAML_IDP_ENTITYID', $idp_entity_id.'/shibboleth'),
+        'entityId' => env('SAML_IDP_ENTITYID', $idp_base_url.'/shibboleth'),
 
         /*
         |----------------------------------------------------------------------
@@ -197,7 +197,7 @@ return [
         */
         'singleSignOnService' => [
             // URL target of the IdP where the Authentication Request will be sent.
-            'url' => env('SAML_IDP_SSO_URL', $idp_entity_id.'/profile/SAML2/Redirect/SSO'),
+            'url' => env('SAML_IDP_SSO_URL', $idp_base_url.'/profile/SAML2/Redirect/SSO'),
             // SAML protocol binding to be used. Only HTTP-Redirect is supported.
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
         ],
