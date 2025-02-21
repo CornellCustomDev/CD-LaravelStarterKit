@@ -4,8 +4,9 @@ namespace CornellCustomDev\LaravelStarterKit\CUAuth\Managers;
 
 use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\RemoteIdentity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
-class ShibIdentityManager
+class ShibIdentityManager implements IdentityManager
 {
     // Shibboleth fields generally available from either cit or weill IdPs.
     public const SHIB_FIELDS = [
@@ -43,6 +44,54 @@ class ShibIdentityManager
               ?? $serverVars['mail'] ?? '',
             data: $serverVars,
         );
+    }
+
+    public function storeIdentity(?RemoteIdentity $remoteIdentity = null): ?RemoteIdentity
+    {
+        $remoteIdentity ??= self::fromServerVars();
+
+        session()->put('remoteIdentity', $remoteIdentity);
+
+        return $remoteIdentity;
+    }
+
+    public function hasIdentity(?Request $request = null): bool
+    {
+        $remoteUser = self::getRemoteUser($request);
+
+        return ! empty($remoteUser);
+    }
+
+    public function getIdentity(): ?RemoteIdentity
+    {
+        /** @var RemoteIdentity|null $remoteIdentity */
+        $remoteIdentity = session()->get('remoteIdentity');
+
+        return $remoteIdentity;
+    }
+
+    public function getSsoUrl(string $redirectUrl): string
+    {
+        $url = config('cu-auth.shibboleth_login_url');
+        $query = Arr::query([
+            'target' => $redirectUrl,
+        ]);
+
+        return $url.'?'.$query;
+    }
+
+    public function getSloUrl(string $returnUrl): string
+    {
+        if (self::getRemoteUserOverride()) {
+            return $returnUrl;
+        }
+
+        $url = config('cu-auth.shibboleth_logout_url');
+        $query = Arr::query([
+            'return' => $returnUrl,
+        ]);
+
+        return $url.'?'.$query;
     }
 
     public static function getRemoteUser(?Request $request = null): ?string

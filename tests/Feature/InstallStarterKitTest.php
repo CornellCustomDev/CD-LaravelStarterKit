@@ -218,7 +218,7 @@ class InstallStarterKitTest extends TestCase
         $this->refreshApplication();
 
         $entityId = config('php-saml-toolkit.sp.entityId');
-        $this->assertEquals($defaultVariable.'/saml', $entityId);
+        $this->assertEquals($defaultVariable.'/sso', $entityId);
 
         $this->artisan(
             command: 'vendor:publish',
@@ -237,7 +237,7 @@ class InstallStarterKitTest extends TestCase
         $this->refreshApplication();
 
         $entityId = config('php-saml-toolkit.sp.entityId');
-        $this->assertEquals($testVariable.'/saml', $entityId);
+        $this->assertEquals($testVariable.'/sso', $entityId);
     }
 
     public function testCanInstallSamlCerts()

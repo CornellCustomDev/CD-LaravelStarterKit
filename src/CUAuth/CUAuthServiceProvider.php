@@ -2,6 +2,9 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\IdentityManager;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\SamlIdentityManager;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +27,13 @@ class CUAuthServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             path: __DIR__.'/../../config/php-saml-toolkit.php',
             key: 'php-saml-toolkit',
+        );
+        $this->app->singleton(
+            abstract: IdentityManager::class,
+            concrete: match (config('cu-auth.identity_manager')) {
+                self::APACHE_SHIB => fn () => new ShibIdentityManager,
+                self::PHP_SAML => fn () => new SamlIdentityManager,
+            },
         );
     }
 

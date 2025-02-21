@@ -3,9 +3,7 @@
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Middleware;
 
 use Closure;
-use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
-use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\SamlIdentityManager;
-use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\IdentityManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -15,17 +13,21 @@ class AppTesters
 {
     private Collection $app_testers;
 
-    public function __construct()
+    private IdentityManager $identityManager;
+
+    public function __construct(IdentityManager $identityManager)
     {
         $this->app_testers = Str::of(config('cu-auth.app_testers'))
             ->split('/[\s,]+/')
             ->filter();
+
+        $this->identityManager = $identityManager;
     }
 
     public function handle(Request $request, Closure $next): Response
     {
         // Anyone can use production
-        if (config('app.env') == 'production') {
+        if (config('app.env') === 'production') {
             return $next($request);
         }
 
@@ -38,10 +40,7 @@ class AppTesters
             $appTestersField = config('cu-auth.app_testers_field');
             $tester = auth()->user()->$appTestersField ?? '';
         } else {
-            $tester = match (config('cu-auth.identity_manager')) {
-                CUAuthServiceProvider::APACHE_SHIB => ShibIdentityManager::getRemoteUser($request),
-                CUAuthServiceProvider::PHP_SAML => SamlIdentityManager::getIdentity()?->uniqueUid(),
-            };
+            $tester = $this->identityManager->getIdentity()?->uniqueUid() ?: '';
         }
 
         if ($this->app_testers->contains($tester)) {

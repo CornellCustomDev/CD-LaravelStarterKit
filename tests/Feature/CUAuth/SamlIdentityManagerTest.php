@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\File;
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Settings;
 
-class PhpSamlTest extends FeatureTestCase
+class SamlIdentityManagerTest extends FeatureTestCase
 {
     public function testCanTestSettingsAreInvalid()
     {
@@ -42,15 +42,15 @@ class PhpSamlTest extends FeatureTestCase
         config(['php-saml-toolkit.idp.x509cert' => File::get("$basePath/storage/app/keys/idp_cert.pem")]);
         $this->assertStringContainsString('test-idp-cert-contents', config('php-saml-toolkit.idp.x509cert'));
 
-        $url = SamlIdentityManager::getSsoUrl('/');
+        $url = (new SamlIdentityManager)->getSsoUrl('/');
 
         $this->assertStringContainsString('https://shibidp-test.cit.cornell.edu/idp/profile/SAML2/Redirect/SSO?SAMLRequest=', $url);
     }
 
     public function testCanGetMetadata()
     {
-        $metadata = SamlIdentityManager::getMetadata();
+        $metadata = (new SamlIdentityManager)->getMetadata();
 
-        $this->assertStringContainsString('entityID="https://localhost/saml"', $metadata);
+        $this->assertStringContainsString('entityID="https://localhost/sso"', $metadata);
     }
 }

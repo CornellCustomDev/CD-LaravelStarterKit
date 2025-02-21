@@ -2,21 +2,24 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\Listeners;
 
-use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
+use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\RemoteIdentity;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
-use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\SamlIdentityManager;
-use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\IdentityManager;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AuthorizeUser
 {
-    public function handle(CUAuthenticated $event, ?array $serverVars = null): void
+    protected IdentityManager $identityManager;
+
+    public function __construct(IdentityManager $identityManager)
     {
-        $remoteIdentity = match (config('cu-auth.identity_manager')) {
-            CUAuthServiceProvider::APACHE_SHIB => ShibIdentityManager::fromServerVars($serverVars),
-            CUAuthServiceProvider::PHP_SAML => SamlIdentityManager::getIdentity(),
-        };
+        $this->identityManager = $identityManager;
+    }
+
+    public function handle(CUAuthenticated $event, ?RemoteIdentity $remoteIdentity = null): void
+    {
+        $remoteIdentity ??= $this->identityManager->getIdentity();
 
         // Look for a matching user.
         $userModel = config('auth.providers.users.model');
@@ -34,5 +37,7 @@ class AuthorizeUser
 
         auth()->login($user);
         Log::info("AuthorizeUser: Logged in user $user->email.");
+
+        $this->identityManager->storeIdentity($remoteIdentity);
     }
 }

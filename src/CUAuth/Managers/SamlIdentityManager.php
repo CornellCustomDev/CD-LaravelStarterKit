@@ -4,6 +4,7 @@ namespace CornellCustomDev\LaravelStarterKit\CUAuth\Managers;
 
 use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\RemoteIdentity;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\AuthnRequest;
@@ -11,7 +12,7 @@ use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\ValidationError;
 
-class SamlIdentityManager
+class SamlIdentityManager implements IdentityManager
 {
     public const SAML_FIELDS = [
         'eduPersonPrimaryAffiliation', // staff|student|...
@@ -28,10 +29,7 @@ class SamlIdentityManager
         'eduPersonEntitlement',
     ];
 
-    /**
-     * @throws Exception
-     */
-    public static function storeIdentity(): ?RemoteIdentity
+    public static function fromAcsPost(): RemoteIdentity
     {
         try {
             $auth = new Auth(settings: config('php-saml-toolkit'));
@@ -54,19 +52,34 @@ class SamlIdentityManager
             idp: 'cit.cornell.edu',
             uid: $attributes['uid'][0] ?? '',
             displayName: $attributes['displayName'][0]
-                ?? $attributes['cn'][0]
-                ?? trim(($attributes['givenName'][0] ?? '').' '.($attributes['sn'][0] ?? '')),
+            ?? $attributes['cn'][0]
+            ?? trim(($attributes['givenName'][0] ?? '').' '.($attributes['sn'][0] ?? '')),
             email: $attributes['eduPersonPrincipalName'][0]
-                ?? $attributes['mail'][0] ?? '',
+            ?? $attributes['mail'][0] ?? '',
             data: $attributes,
         );
+
+        return $remoteIdentity;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function storeIdentity(?RemoteIdentity $remoteIdentity = null): ?RemoteIdentity
+    {
+        $remoteIdentity ??= self::fromAcsPost();
 
         session()->put('remoteIdentity', $remoteIdentity);
 
         return $remoteIdentity;
     }
 
-    public static function getIdentity(): ?RemoteIdentity
+    public function hasIdentity(?Request $request = null): bool
+    {
+        return ! empty(self::getIdentity());
+    }
+
+    public function getIdentity(): ?RemoteIdentity
     {
         /** @var RemoteIdentity|null $remoteIdentity */
         $remoteIdentity = session()->get('remoteIdentity');
@@ -77,7 +90,7 @@ class SamlIdentityManager
     /**
      * @throws Exception
      */
-    public static function getSsoUrl(string $redirectUri): string
+    public function getSsoUrl(string $redirectUrl): string
     {
         try {
             $settings = new Settings(config('php-saml-toolkit'));
@@ -89,10 +102,15 @@ class SamlIdentityManager
         $url = $settings->getIdPData()['singleSignOnService']['url'];
         $query = Arr::query([
             'SAMLRequest' => $authRequest->getRequest(),
-            'RelayState' => $redirectUri,
+            'RelayState' => $redirectUrl,
         ]);
 
         return $url.'?'.$query;
+    }
+
+    public function getSloUrl(string $returnUrl): string
+    {
+        return $returnUrl;
     }
 
     /**
