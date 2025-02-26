@@ -14,6 +14,7 @@ use OneLogin\Saml2\ValidationError;
 
 class SamlIdentityManager implements IdentityManager
 {
+    // Shibboleth fields generally available from either cit or weill IdPs.
     public const SAML_FIELDS = [
         'eduPersonPrimaryAffiliation', // staff|student|...
         'cn', // John R. Doe
@@ -29,44 +30,12 @@ class SamlIdentityManager implements IdentityManager
         'eduPersonEntitlement',
     ];
 
-    public static function fromAcsPost(): RemoteIdentity
-    {
-        try {
-            $auth = new Auth(settings: config('php-saml-toolkit'));
-            $auth->processResponse();
-        } catch (Error|ValidationError $e) {
-            throw new Exception('SAML Response Error: '.$e->getMessage());
-        }
-
-        $errors = $auth->getErrors();
-        if (! empty($errors)) {
-            throw new Exception('SAML Response Errors: '.implode(', ', $errors));
-        }
-        if (! $auth->isAuthenticated()) {
-            throw new Exception('SAML Response not authenticated');
-        }
-
-        $attributes = $auth->getAttributesWithFriendlyName();
-
-        return RemoteIdentity::fromData(
-            idp: 'cit.cornell.edu',
-            uid: $attributes['uid'][0] ?? '',
-            data: $attributes,
-            cn: $attributes['cn'][0] ?? null,
-            givenName: $attributes['givenName'][0] ?? null,
-            sn: $attributes['sn'][0] ?? null,
-            displayName: $attributes['displayName'][0] ?? null,
-            eduPersonPrincipalName: $attributes['eduPersonPrincipalName'][0] ?? null,
-            mail: $attributes['mail'][0] ?? null,
-        );
-    }
-
     /**
      * @throws Exception
      */
     public function storeIdentity(?RemoteIdentity $remoteIdentity = null): ?RemoteIdentity
     {
-        $remoteIdentity ??= self::fromAcsPost();
+        $remoteIdentity ??= $this->getIdentityFromAcsPost();
 
         session()->put('remoteIdentity', $remoteIdentity);
 
@@ -75,7 +44,7 @@ class SamlIdentityManager implements IdentityManager
 
     public function hasIdentity(?Request $request = null): bool
     {
-        return ! empty(self::getIdentity());
+        return ! empty($this->getIdentity());
     }
 
     public function getIdentity(): ?RemoteIdentity
@@ -130,5 +99,37 @@ class SamlIdentityManager implements IdentityManager
         }
 
         return $metadata;
+    }
+
+    private function getIdentityFromAcsPost(): RemoteIdentity
+    {
+        try {
+            $auth = new Auth(settings: config('php-saml-toolkit'));
+            $auth->processResponse();
+        } catch (Error|ValidationError $e) {
+            throw new Exception('SAML Response Error: '.$e->getMessage());
+        }
+
+        $errors = $auth->getErrors();
+        if (! empty($errors)) {
+            throw new Exception('SAML Response Errors: '.implode(', ', $errors));
+        }
+        if (! $auth->isAuthenticated()) {
+            throw new Exception('SAML Response not authenticated');
+        }
+
+        $attributes = $auth->getAttributesWithFriendlyName();
+
+        return RemoteIdentity::fromData(
+            idp: 'cit.cornell.edu',
+            uid: $attributes['uid'][0] ?? '',
+            data: $attributes,
+            cn: $attributes['cn'][0] ?? null,
+            givenName: $attributes['givenName'][0] ?? null,
+            sn: $attributes['sn'][0] ?? null,
+            displayName: $attributes['displayName'][0] ?? null,
+            eduPersonPrincipalName: $attributes['eduPersonPrincipalName'][0] ?? null,
+            mail: $attributes['mail'][0] ?? null,
+        );
     }
 }

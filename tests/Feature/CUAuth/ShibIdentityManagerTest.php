@@ -216,7 +216,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
 
     public function testShibIdentity()
     {
-        $shib = ShibIdentityManager::fromServerVars([
+        $shib = ShibIdentityManager::getIdentityFromServerVars([
             'Shib_Identity_Provider' => 'https://shibidp-test.cit.cornell.edu/idp/shibboleth',
             'uid' => 'netid',
             'mail' => 'netid@cornell.edu',
@@ -230,7 +230,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
 
     public function testShibWeillIdentity()
     {
-        $shib = ShibIdentityManager::fromServerVars([
+        $shib = ShibIdentityManager::getIdentityFromServerVars([
             'Shib_Identity_Provider' => 'https://login-test.weill.cornell.edu/idp',
             'uid' => 'cwid',
             'mail' => 'cwid@med.cornell.edu',
@@ -244,17 +244,17 @@ class ShibIdentityManagerTest extends FeatureTestCase
 
     public function testShibNames()
     {
-        $shib = ShibIdentityManager::fromServerVars([
+        $shib = ShibIdentityManager::getIdentityFromServerVars([
             'displayName' => 'Test User',
         ]);
         $this->assertEquals('Test User', $shib->name());
 
-        $shib = ShibIdentityManager::fromServerVars([
+        $shib = ShibIdentityManager::getIdentityFromServerVars([
             'cn' => 'Test User',
         ]);
         $this->assertEquals('Test User', $shib->name());
 
-        $shib = ShibIdentityManager::fromServerVars([
+        $shib = ShibIdentityManager::getIdentityFromServerVars([
             'givenName' => 'Test',
             'sn' => 'User',
         ]);
@@ -263,7 +263,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
 
     public function testAuthorizeUser()
     {
-        $remoteIdentity = ShibIdentityManager::fromServerVars([
+        $remoteIdentity = ShibIdentityManager::getIdentityFromServerVars([
             'Shib_Identity_Provider' => 'https://shibidp-test.cit.cornell.edu/idp/shibboleth',
             'uid' => 'netid',
             'displayName' => 'Test User',

@@ -25,31 +25,9 @@ class ShibIdentityManager implements IdentityManager
         'uid', // netid|cwid
     ];
 
-    /**
-     * Shibboleth server variables will be retrieved from the request if not provided.
-     */
-    public static function fromServerVars(?array $serverVars = null): RemoteIdentity
-    {
-        if (empty($serverVars)) {
-            $serverVars = app('request')->server();
-        }
-
-        return RemoteIdentity::fromData(
-            idp: $serverVars['Shib_Identity_Provider'] ?? '',
-            uid: $serverVars['uid'] ?? '',
-            data: $serverVars,
-            cn: $serverVars['cn'] ?? null,
-            givenName: $serverVars['givenName'] ?? null,
-            sn: $serverVars['sn'] ?? null,
-            displayName: $serverVars['displayName'] ?? null,
-            eduPersonPrincipalName: $serverVars['eduPersonPrincipalName'] ?? null,
-            mail: $serverVars['mail'] ?? null,
-        );
-    }
-
     public function storeIdentity(?RemoteIdentity $remoteIdentity = null): ?RemoteIdentity
     {
-        $remoteIdentity ??= self::fromServerVars();
+        $remoteIdentity ??= $this->getIdentityFromServerVars();
 
         session()->put('remoteIdentity', $remoteIdentity);
 
@@ -58,7 +36,7 @@ class ShibIdentityManager implements IdentityManager
 
     public function hasIdentity(?Request $request = null): bool
     {
-        $remoteUser = self::getRemoteUser($request);
+        $remoteUser = $this->getRemoteUser($request);
 
         return ! empty($remoteUser);
     }
@@ -83,7 +61,7 @@ class ShibIdentityManager implements IdentityManager
 
     public function getSloUrl(string $returnUrl): string
     {
-        if (self::getRemoteUserOverride()) {
+        if ($this->getRemoteUserOverride()) {
             return $returnUrl;
         }
 
@@ -100,20 +78,39 @@ class ShibIdentityManager implements IdentityManager
         return null;
     }
 
-    public static function getRemoteUser(?Request $request = null): ?string
+    public static function getIdentityFromServerVars(?array $serverVars = null): RemoteIdentity
+    {
+        if (empty($serverVars)) {
+            $serverVars = app('request')->server();
+        }
+
+        return RemoteIdentity::fromData(
+            idp: $serverVars['Shib_Identity_Provider'] ?? '',
+            uid: $serverVars['uid'] ?? '',
+            data: $serverVars,
+            cn: $serverVars['cn'] ?? null,
+            givenName: $serverVars['givenName'] ?? null,
+            sn: $serverVars['sn'] ?? null,
+            displayName: $serverVars['displayName'] ?? null,
+            eduPersonPrincipalName: $serverVars['eduPersonPrincipalName'] ?? null,
+            mail: $serverVars['mail'] ?? null,
+        );
+    }
+
+    private function getRemoteUser(?Request $request = null): ?string
     {
         if (empty($request)) {
             $request = app('request');
         }
 
         // If this is a local development environment, allow the local override.
-        $remote_user_override = self::getRemoteUserOverride();
+        $remote_user_override = $this->getRemoteUserOverride();
 
         // Apache mod_shib populates the remote user variable if someone is logged in.
         return $request->server(config('cu-auth.apache_shib_user_variable')) ?: $remote_user_override;
     }
 
-    public static function getRemoteUserOverride(): ?string
+    private function getRemoteUserOverride(): ?string
     {
         // If this is a local development environment, allow the local override.
         return app()->isLocal() ? config('cu-auth.remote_user_override') : null;

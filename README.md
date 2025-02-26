@@ -77,14 +77,16 @@ For an existing Laravel site, this package can be composer-required to provide t
     ```shell
     php artisan starterkit:install
     ```
-   Note: When using as a library or updating an installation, you will not want to install the project files. You may still want to install the theme assets, view components, and possibly example files. Be aware that these will overwrite existing files.
+   The `starterkit:install` command prompts for a set of install options, so it is safe to run and then make selections.
+
+ Note: When using as a library or updating an installation, you will not want to install the project files. You may still want to install the theme assets, view components, and possibly example files. Be aware that these will overwrite existing files.
 
 ## Libraries
 
 The libraries included in the Starter Kit are documented in their respective README files:
 
 - [Contact/PhoneNumber](src/Contact/README.md): A library for parsing and formatting a phone number.
-- [CUAuth](src/CUAuth/README.md): A middleware for authorizing Laravel users, mostly for Apache mod_shib authentication.
+- [CUAuth](src/CUAuth/README.md): A middleware for authorizing Laravel users, mostly for single sign-on with Apache mod_shib or SAML PHP Toolkit.
 
 ## Deploying a site
 Once a Media3 site has been created, you have confirmed you can reach the default site via a web browser, and you have access to the site login by command line, the code can be deployed.
@@ -92,7 +94,7 @@ Once a Media3 site has been created, you have confirmed you can reach the defaul
 You will likely need to map the `php` command to the correct version by editing `~/.bashrc` to include this alias (for this to take effect, run `source ~/.bashrc` or just log in again):
 ```shell
 # User specific aliases and functions
-alias php="/usr/local/bin/ea-php81"
+alias php="/usr/local/bin/ea-php83"
 ```
 
 Since `www/your-site/public` will already exist, you need to do a little moving things around to git clone your site repo from GitHub:
