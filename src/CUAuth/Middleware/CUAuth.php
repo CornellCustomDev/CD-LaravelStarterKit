@@ -8,7 +8,7 @@ use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\IdentityManager;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class RemoteAuthentication
+class CUAuth
 {
     public function __construct(
         protected IdentityManager $identityManager

@@ -34,15 +34,16 @@ class ShibIdentityManager implements IdentityManager
             $serverVars = app('request')->server();
         }
 
-        return new RemoteIdentity(
+        return RemoteIdentity::fromData(
             idp: $serverVars['Shib_Identity_Provider'] ?? '',
             uid: $serverVars['uid'] ?? '',
-            displayName: $serverVars['displayName']
-                ?? $serverVars['cn']
-                ?? trim(($serverVars['givenName'] ?? '').' '.($serverVars['sn'] ?? '')),
-            email: $serverVars['eduPersonPrincipalName']
-              ?? $serverVars['mail'] ?? '',
             data: $serverVars,
+            cn: $serverVars['cn'] ?? null,
+            givenName: $serverVars['givenName'] ?? null,
+            sn: $serverVars['sn'] ?? null,
+            displayName: $serverVars['displayName'] ?? null,
+            eduPersonPrincipalName: $serverVars['eduPersonPrincipalName'] ?? null,
+            mail: $serverVars['mail'] ?? null,
         );
     }
 

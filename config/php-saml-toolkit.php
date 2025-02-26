@@ -28,7 +28,7 @@ return [
     | Enable debug mode to print errors. Disable in production.
     |
     */
-    'debug' => false,
+    'debug' => env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ return [
     | For example: http://sp.example.com/ or http://example.com/sp/
     |
     */
-    'baseurl' => $sp_base_url,
+    'baseurl' => $sp_base_url.'/sso',
 
     /*
     |--------------------------------------------------------------------------

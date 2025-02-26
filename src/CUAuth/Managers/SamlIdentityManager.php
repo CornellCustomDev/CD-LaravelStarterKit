@@ -48,18 +48,17 @@ class SamlIdentityManager implements IdentityManager
 
         $attributes = $auth->getAttributesWithFriendlyName();
 
-        $remoteIdentity = new RemoteIdentity(
+        return RemoteIdentity::fromData(
             idp: 'cit.cornell.edu',
             uid: $attributes['uid'][0] ?? '',
-            displayName: $attributes['displayName'][0]
-            ?? $attributes['cn'][0]
-            ?? trim(($attributes['givenName'][0] ?? '').' '.($attributes['sn'][0] ?? '')),
-            email: $attributes['eduPersonPrincipalName'][0]
-            ?? $attributes['mail'][0] ?? '',
             data: $attributes,
+            cn: $attributes['cn'][0] ?? null,
+            givenName: $attributes['givenName'][0] ?? null,
+            sn: $attributes['sn'][0] ?? null,
+            displayName: $attributes['displayName'][0] ?? null,
+            eduPersonPrincipalName: $attributes['eduPersonPrincipalName'][0] ?? null,
+            mail: $attributes['mail'][0] ?? null,
         );
-
-        return $remoteIdentity;
     }
 
     /**

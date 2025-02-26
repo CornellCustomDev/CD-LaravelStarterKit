@@ -2,15 +2,47 @@
 
 namespace CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects;
 
-class RemoteIdentity
+readonly class RemoteIdentity
 {
     public function __construct(
-        public readonly string $idp,
-        public readonly string $uid,
-        public readonly string $displayName = '',
-        public readonly string $email = '',
-        public readonly array $data = [],
+        public string $idp,
+        public string $uid,
+        public string $displayName = '',
+        public string $email = '',
+        public array $data = [],
     ) {}
+
+    public static function fromData(
+        string $idp,
+        string $uid,
+        array $data = [],
+        ?string $cn = null,
+        ?string $givenName = null,
+        ?string $sn = null,
+        ?string $displayName = null,
+        ?string $eduPersonPrincipalName = null,
+        ?string $mail = null,
+    ): RemoteIdentity {
+        return new RemoteIdentity(
+            idp: $idp,
+            uid: $uid,
+            displayName: $displayName
+                ?? $cn
+                ?? trim(($givenName ?? '').' '.($sn ?? '')),
+            email: $eduPersonPrincipalName
+                ?? $mail
+                ?? '',
+            data: $data,
+        );
+    }
+
+    /**
+     * Provides an id that is unique within the IdP, i.e., NetID or CWID
+     */
+    public function id(): string
+    {
+        return $this->uid;
+    }
 
     /**
      * Provides an id that is unique across Cornell IdPs.

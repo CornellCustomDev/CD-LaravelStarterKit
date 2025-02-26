@@ -46,6 +46,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | PHP-SAML Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the OneLogin SAML PHP Toolkit is primarily elsewhere in
+    | config/php-saml-toolkit.php.
+    |
+    | The default cert path of storage/app/keys is ignored by git.
+    |
+    */
+    'cert-path' => storage_path(env('SAML_CERT_PATH', 'app/keys')),
+
+    /*
+    |--------------------------------------------------------------------------
     | AppTesters Configuration
     |--------------------------------------------------------------------------
     |

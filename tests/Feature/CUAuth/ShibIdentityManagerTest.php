@@ -6,7 +6,7 @@ use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Http\Controllers\AuthController;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Listeners\AuthorizeUser;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\ShibIdentityManager;
-use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\RemoteAuthentication;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\CUAuth;
 use CornellCustomDev\LaravelStarterKit\Tests\Feature\FeatureTestCase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
@@ -98,7 +98,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $this->addCUAuthenticatedListener(authorized: false);
         $request = $this->getApacheAuthRequest('new-user');
 
-        $response = (new RemoteAuthentication(new ShibIdentityManager))
+        $response = (new CUAuth(new ShibIdentityManager))
             ->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isForbidden());
@@ -111,7 +111,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
     {
         config(['cu-auth.allow_local_login' => true]);
 
-        $response = (new RemoteAuthentication(new ShibIdentityManager))
+        $response = (new CUAuth(new ShibIdentityManager))
             ->handle(new Request, fn () => response('OK'));
 
         $this->assertTrue($response->isRedirect());
@@ -126,7 +126,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
         config(['cu-auth.allow_local_login' => true]);
         auth()->login($this->getTestUser());
 
-        $response = (new RemoteAuthentication($identityManager))
+        $response = (new CUAuth($identityManager))
             ->handle(new Request, fn () => response('OK'));
 
         $this->assertTrue($response->isOk());
@@ -138,7 +138,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
     protected function usesAuthRoutes($router): void
     {
         $router->get('/test/require-cu-auth', fn () => 'OK')->name('test.require-cu-auth')
-            ->middleware(RemoteAuthentication::class);
+            ->middleware(CUAuth::class);
         $router->get('/test/require-auth', fn () => 'OK')->name('test.require-auth')
             ->middleware('auth');
         // Laravel requires a route named "login" in auth login workflow.
@@ -209,7 +209,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $this->addCUAuthenticatedListener(authorized: false);
         $request = $this->getApacheAuthRequest('new-user');
 
-        $response = (new RemoteAuthentication(new ShibIdentityManager))->handle($request, fn () => response('OK'));
+        $response = (new CUAuth(new ShibIdentityManager))->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isOk());
     }
