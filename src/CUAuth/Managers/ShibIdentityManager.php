@@ -25,16 +25,7 @@ class ShibIdentityManager implements IdentityManager
         'uid', // netid|cwid
     ];
 
-    public function storeIdentity(?RemoteIdentity $remoteIdentity = null): ?RemoteIdentity
-    {
-        $remoteIdentity ??= $this->retrieveIdentity();
-
-        session()->put('remoteIdentity', $remoteIdentity);
-
-        return $remoteIdentity;
-    }
-
-    public function hasIdentity(?Request $request = null): bool
+    public function hasIdentity(): bool
     {
         return ! empty($this->getIdentity());
     }
@@ -43,6 +34,18 @@ class ShibIdentityManager implements IdentityManager
     {
         /** @var RemoteIdentity|null $remoteIdentity */
         $remoteIdentity = session()->get('remoteIdentity');
+
+        if (empty($remoteIdentity)) {
+            $remoteIdentity = $this->storeIdentity();
+        }
+
+        return $remoteIdentity;
+    }
+
+    public function storeIdentity(): ?RemoteIdentity
+    {
+        $remoteIdentity = $this->retrieveIdentity();
+        session()->put('remoteIdentity', $remoteIdentity);
 
         return $remoteIdentity;
     }

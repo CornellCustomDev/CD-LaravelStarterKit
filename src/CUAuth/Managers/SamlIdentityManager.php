@@ -30,19 +30,7 @@ class SamlIdentityManager implements IdentityManager
         'eduPersonEntitlement',
     ];
 
-    /**
-     * @throws Exception
-     */
-    public function storeIdentity(?RemoteIdentity $remoteIdentity = null): ?RemoteIdentity
-    {
-        $remoteIdentity ??= $this->retrieveIdentity();
-
-        session()->put('remoteIdentity', $remoteIdentity);
-
-        return $remoteIdentity;
-    }
-
-    public function hasIdentity(?Request $request = null): bool
+    public function hasIdentity(): bool
     {
         return ! empty($this->getIdentity());
     }
@@ -51,6 +39,17 @@ class SamlIdentityManager implements IdentityManager
     {
         /** @var RemoteIdentity|null $remoteIdentity */
         $remoteIdentity = session()->get('remoteIdentity');
+
+        return $remoteIdentity;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function storeIdentity(): ?RemoteIdentity
+    {
+        $remoteIdentity = $this->retrieveIdentity();
+        session()->put('remoteIdentity', $remoteIdentity);
 
         return $remoteIdentity;
     }

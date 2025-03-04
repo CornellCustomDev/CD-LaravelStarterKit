@@ -34,7 +34,5 @@ class AuthorizeUser
 
         auth()->login($user);
         Log::info("AuthorizeUser: Logged in user $user->email.");
-
-        $this->identityManager->storeIdentity($remoteIdentity);
     }
 }

@@ -7,11 +7,11 @@ use Illuminate\Http\Request;
 
 interface IdentityManager
 {
-    public function hasIdentity(?Request $request = null): bool;
-
-    public function storeIdentity(?RemoteIdentity $remoteIdentity = null): ?RemoteIdentity;
+    public function hasIdentity(): bool;
 
     public function getIdentity(): ?RemoteIdentity;
+
+    public function storeIdentity(): ?RemoteIdentity;
 
     public function getSsoUrl(string $redirectUrl): string;
 
