@@ -18,6 +18,10 @@ class AuthorizeUser
     {
         $remoteIdentity ??= $this->identityManager->getIdentity();
 
+        if (empty($remoteIdentity)) {
+            $remoteIdentity = $this->identityManager->retrieveIdentity();
+        }
+
         // Look for a matching user.
         $userModel = config('auth.providers.users.model');
         $user = $userModel::firstWhere('email', $remoteIdentity->email());

@@ -37,7 +37,6 @@ class AuthController extends BaseController
 
         $returnUrl = $request->query('return', '/');
 
-        // Note this may just redirect to the returnUrl
         $sloUrl = $this->identityManager->getSloUrl($returnUrl);
 
         return redirect($sloUrl);
@@ -52,7 +51,7 @@ class AuthController extends BaseController
         }
 
         // Redirect to the originally intended URL
-        $returnUrl = $request->input('RelayState', '/');
+        $returnUrl = $this->identityManager->getSsoReturnUrl($request);
 
         return redirect()->to($returnUrl);
     }

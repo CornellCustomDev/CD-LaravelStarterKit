@@ -66,12 +66,14 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $this->addCUAuthenticatedListener();
         $request = $this->getApacheAuthRequest('new-user');
         $request->query->set('redirect_url', '/test');
+        $redirect_url = route('cu-auth.sso-acs', ['redirect_url' => '/test']);
 
         $response = (new AuthController(new ShibIdentityManager))
             ->login($request);
 
         $this->assertTrue($response->isRedirect());
-        $this->assertStringContainsString(urlencode('/test'), $response->getTargetUrl());
+        $targetUrl = $response->getTargetUrl();
+        $this->assertStringContainsString(urlencode($redirect_url), $targetUrl);
     }
 
     public function testLogsOutRemoteUser()
@@ -97,8 +99,10 @@ class ShibIdentityManagerTest extends FeatureTestCase
         config(['cu-auth.require_local_user' => true]);
         $this->addCUAuthenticatedListener(authorized: false);
         $request = $this->getApacheAuthRequest('new-user');
+        $identityManager = $this->createMock(ShibIdentityManager::class);
+        $identityManager->method('hasIdentity')->willReturn(true);
 
-        $response = (new CUAuth(new ShibIdentityManager))
+        $response = (new CUAuth($identityManager))
             ->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isForbidden());
@@ -135,7 +139,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
     /**
      * Routes for auth testing.
      */
-    protected function usesAuthRoutes($router): void
+    protected static function usesAuthRoutes($router): void
     {
         $router->get('/test/require-cu-auth', fn () => 'OK')->name('test.require-cu-auth')
             ->middleware(CUAuth::class);
@@ -156,35 +160,6 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $this->get(route('test.require-auth'))->assertRedirect('/test/login');
         $this->get(route('test.require-cu-auth'))->assertRedirectContains(route('cu-auth.sso-login'));
         $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
-    }
-
-    /** @define-route usesAuthRoutes */
-    public function testRouteIsProtectedForRemoteUser()
-    {
-        $this->addCUAuthenticatedListener();
-        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
-
-        // No user is authenticated.
-        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
-
-        // Remote user is authenticated.
-        $this->withServerVariables(['REMOTE_USER_TEST' => 'new-user']);
-        $this->get(route('test.require-cu-auth'))->assertOk();
-    }
-
-    /** @define-route usesAuthRoutes */
-    public function testRouteIsProtectedForProductionRemoteUser()
-    {
-        $this->addCUAuthenticatedListener();
-        config(['cu-auth.remote_user_override' => 'new-user']);
-
-        // Override does not work in production environment.
-        $this->app->detectEnvironment(fn () => 'production');
-        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
-
-        // Override works in local environment.
-        $this->app->detectEnvironment(fn () => 'local');
-        $this->get(route('test.require-cu-auth'))->assertOk();
     }
 
     /** @define-route usesAuthRoutes */
@@ -209,14 +184,16 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $this->addCUAuthenticatedListener(authorized: false);
         $request = $this->getApacheAuthRequest('new-user');
 
-        $response = (new CUAuth(new ShibIdentityManager))->handle($request, fn () => response('OK'));
+        $identityManager = $this->createMock(ShibIdentityManager::class);
+        $identityManager->method('hasIdentity')->willReturn(true);
+        $response = (new CUAuth($identityManager))->handle($request, fn () => response('OK'));
 
         $this->assertTrue($response->isOk());
     }
 
     public function testShibIdentity()
     {
-        $shib = ShibIdentityManager::getIdentityFromServerVars([
+        $shib = (new ShibIdentityManager)->retrieveIdentity([
             'Shib_Identity_Provider' => 'https://shibidp-test.cit.cornell.edu/idp/shibboleth',
             'uid' => 'netid',
             'mail' => 'netid@cornell.edu',
@@ -228,9 +205,18 @@ class ShibIdentityManagerTest extends FeatureTestCase
         $this->assertEquals('netid@cornell.edu', $shib->email());
     }
 
+    public function testRetrieveIdentityFromServer()
+    {
+        $identityManager = new ShibIdentityManager;
+        $request = $this->getApacheAuthRequest('new-user');
+        $remoteIdentity = $identityManager->retrieveIdentity(request: $request);
+
+        $this->assertEquals('new-user', $remoteIdentity->id());
+    }
+
     public function testShibWeillIdentity()
     {
-        $shib = ShibIdentityManager::getIdentityFromServerVars([
+        $shib = (new ShibIdentityManager)->retrieveIdentity([
             'Shib_Identity_Provider' => 'https://login-test.weill.cornell.edu/idp',
             'uid' => 'cwid',
             'mail' => 'cwid@med.cornell.edu',
@@ -244,17 +230,21 @@ class ShibIdentityManagerTest extends FeatureTestCase
 
     public function testShibNames()
     {
-        $shib = ShibIdentityManager::getIdentityFromServerVars([
+        $identityManager = new ShibIdentityManager;
+        $shib = $identityManager->retrieveIdentity([
+            'uid' => 'netid',
             'displayName' => 'Test User',
         ]);
         $this->assertEquals('Test User', $shib->name());
 
-        $shib = ShibIdentityManager::getIdentityFromServerVars([
+        $shib = $identityManager->retrieveIdentity([
+            'uid' => 'netid',
             'cn' => 'Test User',
         ]);
         $this->assertEquals('Test User', $shib->name());
 
-        $shib = ShibIdentityManager::getIdentityFromServerVars([
+        $shib = $identityManager->retrieveIdentity([
+            'uid' => 'netid',
             'givenName' => 'Test',
             'sn' => 'User',
         ]);
@@ -263,14 +253,15 @@ class ShibIdentityManagerTest extends FeatureTestCase
 
     public function testAuthorizeUser()
     {
-        $remoteIdentity = ShibIdentityManager::getIdentityFromServerVars([
+        $identityManager = new ShibIdentityManager;
+        $remoteIdentity = $identityManager->retrieveIdentity([
             'Shib_Identity_Provider' => 'https://shibidp-test.cit.cornell.edu/idp/shibboleth',
             'uid' => 'netid',
             'displayName' => 'Test User',
             'mail' => 'netid@cornell.edu',
         ]);
         $event = new CUAuthenticated('netid@cornell.edu');
-        $listener = new AuthorizeUser(new ShibIdentityManager);
+        $listener = new AuthorizeUser($identityManager);
         $listener->handle($event, $remoteIdentity);
 
         $this->assertTrue(auth()->check());

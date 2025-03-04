@@ -35,7 +35,7 @@ class SamlIdentityManager implements IdentityManager
      */
     public function storeIdentity(?RemoteIdentity $remoteIdentity = null): ?RemoteIdentity
     {
-        $remoteIdentity ??= $this->getIdentityFromAcsPost();
+        $remoteIdentity ??= $this->retrieveIdentity();
 
         session()->put('remoteIdentity', $remoteIdentity);
 
@@ -76,6 +76,11 @@ class SamlIdentityManager implements IdentityManager
         return $url.'?'.$query;
     }
 
+    public function getSsoReturnUrl(Request $request): string
+    {
+        return $request->input('RelayState', '/');
+    }
+
     public function getSloUrl(string $returnUrl): string
     {
         return $returnUrl;
@@ -101,24 +106,26 @@ class SamlIdentityManager implements IdentityManager
         return $metadata;
     }
 
-    private function getIdentityFromAcsPost(): RemoteIdentity
+    private function retrieveIdentity(?array $attributes = null): RemoteIdentity
     {
-        try {
-            $auth = new Auth(settings: config('php-saml-toolkit'));
-            $auth->processResponse();
-        } catch (Error|ValidationError $e) {
-            throw new Exception('SAML Response Error: '.$e->getMessage());
-        }
+        if (empty($attributes)) {
+            try {
+                $auth = new Auth(settings: config('php-saml-toolkit'));
+                $auth->processResponse();
+            } catch (Error|ValidationError $e) {
+                throw new Exception('SAML Response Error: '.$e->getMessage());
+            }
 
-        $errors = $auth->getErrors();
-        if (! empty($errors)) {
-            throw new Exception('SAML Response Errors: '.implode(', ', $errors));
-        }
-        if (! $auth->isAuthenticated()) {
-            throw new Exception('SAML Response not authenticated');
-        }
+            $errors = $auth->getErrors();
+            if (! empty($errors)) {
+                throw new Exception('SAML Response Errors: '.implode(', ', $errors));
+            }
+            if (! $auth->isAuthenticated()) {
+                throw new Exception('SAML Response not authenticated');
+            }
 
-        $attributes = $auth->getAttributesWithFriendlyName();
+            $attributes = $auth->getAttributesWithFriendlyName();
+        }
 
         return RemoteIdentity::fromData(
             idp: 'cit.cornell.edu',
