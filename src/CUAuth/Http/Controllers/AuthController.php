@@ -18,8 +18,10 @@ class AuthController extends BaseController
     {
         $redirectUrl = $request->query('redirect_url', '/');
 
-        if ($this->identityManager->hasIdentity()) {
-            // Already logged in so redirect to the originally intended URL
+        $remoteIdentity = $this->identityManager->retrieveIdentity();
+        if ($remoteIdentity) {
+            $this->identityManager->storeIdentity($remoteIdentity);
+
             return redirect()->to($redirectUrl);
         }
 

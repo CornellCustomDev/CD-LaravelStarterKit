@@ -163,6 +163,35 @@ class ShibIdentityManagerTest extends FeatureTestCase
     }
 
     /** @define-route usesAuthRoutes */
+    public function testRouteIsProtectedForRemoteUser()
+    {
+        $this->addCUAuthenticatedListener();
+        config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
+
+        // No user is authenticated.
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
+
+        // Remote user is authenticated.
+        $this->withServerVariables(['REMOTE_USER_TEST' => 'new-user']);
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertOk();
+    }
+
+    /** @define-route usesAuthRoutes */
+    public function testRouteIsProtectedForProductionRemoteUser()
+    {
+        $this->addCUAuthenticatedListener();
+        config(['cu-auth.remote_user_override' => 'new-user']);
+
+        // Override does not work in production environment.
+        $this->app->detectEnvironment(fn () => 'production');
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
+
+        // Override works in local environment.
+        $this->app->detectEnvironment(fn () => 'local');
+        $this->followingRedirects()->get(route('test.require-cu-auth'))->assertOk();
+    }
+
+    /** @define-route usesAuthRoutes */
     public function testRouteIsProtectedForLocalUser()
     {
         config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);
