@@ -20,6 +20,7 @@ class GenerateKeys extends Command
 
         $idpCertPath = $certPath.'/idp_cert.pem';
         if ($force || ! File::exists($idpCertPath)) {
+            $this->info('Downloading Cornell IDP certificate...');
             $certDownloadUrl = app()->isProduction()
                 ? 'https://shibidp.cit.cornell.edu/cornell-idp.cer'
                 : 'https://shibidp-test.cit.cornell.edu/cornell-idp.cer';
@@ -27,11 +28,14 @@ class GenerateKeys extends Command
                 ? 'test-idp-cert-contents'  // Dummy content for testing
                 : file_get_contents($certDownloadUrl);
             File::put($idpCertPath, $idpCertContents);
+        } else {
+            $this->info('Cornell IDP certificate already exists.');
         }
 
         $spKeyPath = $certPath.'/sp_key.pem';
         $spCertPath = $certPath.'/sp_cert.pem';
         if ($force || ! File::exists($spKeyPath) || ! File::exists($spCertPath)) {
+            $this->info('Generating service provider key pair...');
             $config = [
                 'digest_alg' => 'sha256',
                 'private_key_bits' => 2048,
@@ -49,6 +53,10 @@ class GenerateKeys extends Command
             $days = now()->diffInDays(now()->addYears(10));
             $certificate = openssl_csr_sign($csr, null, $key, $days, $config);
             openssl_x509_export_to_file($certificate, $spCertPath);
+        } else {
+            $this->info('Service provider key pair already exists.');
         }
+
+        $this->info('Keys generated successfully.');
     }
 }
