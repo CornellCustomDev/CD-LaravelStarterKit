@@ -25,6 +25,10 @@ class ShibIdentityManager implements IdentityManager
         'uid', // netid|cwid
     ];
 
+    public const SHIB_LOGIN_URL = '/Shibboleth.sso/Login';
+
+    public const SHIB_LOGOUT_URL = '/Shibboleth.sso/Logout';
+
     public function hasIdentity(): bool
     {
         return ! empty($this->getIdentity());
@@ -52,12 +56,11 @@ class ShibIdentityManager implements IdentityManager
 
     public function getSsoUrl(string $redirectUrl): string
     {
-        $url = config('cu-auth.shibboleth_login_url');
         $query = Arr::query([
             'target' => route('cu-auth.sso-acs', ['redirect_url' => $redirectUrl]),
         ]);
 
-        return $url.'?'.$query;
+        return self::SHIB_LOGIN_URL.'?'.$query;
     }
 
     public function getSsoReturnUrl(Request $request): string
@@ -71,12 +74,11 @@ class ShibIdentityManager implements IdentityManager
             return $returnUrl;
         }
 
-        $url = config('cu-auth.shibboleth_logout_url');
         $query = Arr::query([
             'return' => $returnUrl,
         ]);
 
-        return $url.'?'.$query;
+        return ShibIdentityManager::SHIB_LOGOUT_URL.'?'.$query;
     }
 
     public function getMetadata(): ?string

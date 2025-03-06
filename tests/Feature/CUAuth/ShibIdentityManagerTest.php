@@ -55,7 +55,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
             ->login($request);
 
         $this->assertTrue($response->isRedirect());
-        $this->assertStringContainsString(config('cu-auth.shibboleth_login_url'), $response->getTargetUrl());
+        $this->assertStringContainsString(ShibIdentityManager::SHIB_LOGIN_URL, $response->getTargetUrl());
     }
 
     /**
@@ -87,7 +87,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
             ->logout($request);
 
         $this->assertTrue($response->isRedirect());
-        $this->assertStringContainsString(config('cu-auth.shibboleth_logout_url'), $response->getTargetUrl());
+        $this->assertStringContainsString(ShibIdentityManager::SHIB_LOGOUT_URL, $response->getTargetUrl());
         $this->assertStringContainsString(urlencode('/test'), $response->getTargetUrl());
     }
 
@@ -148,7 +148,7 @@ class ShibIdentityManagerTest extends FeatureTestCase
         // Laravel requires a route named "login" in auth login workflow.
         $router->get('/test/login', fn () => 'OK')->name('login');
         // Fake shibboleth login url route.
-        $router->get(config('cu-auth.shibboleth_login_url'), fn () => 'ShibUrl');
+        $router->get(ShibIdentityManager::SHIB_LOGIN_URL, fn () => 'ShibUrl');
     }
 
     /**
