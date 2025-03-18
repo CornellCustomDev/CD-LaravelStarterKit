@@ -21,6 +21,11 @@ class CUAuth
             return $next($request);
         }
 
+        // Make sure we are using HTTPS.
+        if (! $request->secure()) {
+            return redirect()->secure($request->getRequestUri());
+        }
+
         $passThrough = in_array($request->path(), [
             route('cu-auth.sso-login'),
             route('cu-auth.sso-logout'),
@@ -31,7 +36,7 @@ class CUAuth
             return $next($request);
         }
 
-        if (! $this->identityManager->hasIdentity($request)) {
+        if (! $this->identityManager->hasIdentity()) {
             return redirect()->route('cu-auth.sso-login', ['redirect_url' => $request->fullUrl()]);
         }
 

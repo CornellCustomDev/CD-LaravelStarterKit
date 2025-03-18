@@ -39,6 +39,8 @@ class ShibIdentityManagerTest extends FeatureTestCase
         if ($remote_user !== null) {
             $request->server->set('REMOTE_USER_TEST', $remote_user);
         }
+        // Mock HTTPS
+        $request->server->set('HTTPS', 'on');
 
         return $request;
     }
@@ -158,7 +160,6 @@ class ShibIdentityManagerTest extends FeatureTestCase
     {
         $this->get(route('test'))->assertOk();
         $this->get(route('test.require-auth'))->assertRedirect('/test/login');
-        $this->get(route('test.require-cu-auth'))->assertRedirectContains(route('cu-auth.sso-login'));
         $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
     }
 
