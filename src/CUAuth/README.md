@@ -8,6 +8,13 @@ Middleware for authorizing Laravel users.
 - [AppTesters](#apptesters) - Limit access to users in the `APP_TESTERS` environment variable
 - [Local Login](#local-login) - Allow Laravel users to log in with a local username and password
 
+## Use Cases
+
+- **Single Sign-On**: Protect routes with SSO (mod_shib or PHP SAML)
+  - Optionally log in SSO users to app user accounts
+- **AppTesters**: Limit access to non-production users
+
+
 ## Single Sign-On
 
 ### Usage
@@ -32,6 +39,8 @@ See [Authorization](#identity-and-authorization) for details on how to log in re
 
 > _See also: [shibboleth configuration](SHIBBOLETH.md)._
 
+---
+
 ### Routing
 
 Any pages protected by middleware are automatically redirected to SSO. To directly trigger log in or log out, use the following routes (parameters are optional and will default to `'/'`):
@@ -50,6 +59,7 @@ The SAML metadata can be retrieved at `https://<site-url>/sso/metadata`.
 
 The default location for the SAML keys and certs is in `storage/app/keys`. This location is configurable in the `config/cu-auth.php` file or by setting the `SAML_CERT_PATH` in `.env`.
 
+---
 
 ### Local Testing (apache-shib)
 For local testing where mod_shib is not available, the `REMOTE_USER` environment variable can be set to simulate
