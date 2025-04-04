@@ -38,14 +38,17 @@ class LdapData
     {
         // Use preferred first name if it is not null, otherwise use givenName.
         $firstName = ($data['cornelleduprefgivenname'] ?? null) ?: ($data['givenName'] ?? null);
+
         // Use preferred last name if it is not null, otherwise use sn.
         $lastName = ($data['cornelleduprefsn'] ?? null) ?: ($data['sn'] ?? null);
 
         // Affiliations can be a string, an array, or not set
         $affiliationCollection = collect(($data['cornelleduaffiliation'] ?? null) ?: null);
         $affiliations = $affiliationCollection->toArray();
-        // User the defined primary affiliation or the first affiliation in the collection.
+
+        // Use the defined primary affiliation or the first affiliation in the collection.
         $primaryAffiliation = ($data['cornelleduprimaryaffiliation'] ?? null) ?: $affiliationCollection->shift() ?? '';
+
         // Secondary affiliation is the first affiliation that is not the primary affiliation.
         $secondaryAffiliation = $affiliationCollection->reject($primaryAffiliation)->first() ?? '';
 
@@ -76,12 +79,17 @@ class LdapData
         return new LdapData(
             netid: $data['uid'],
             emplid: $data['cornelleduemplid'] ?? '',
+
             firstName: $firstName,
             lastName: $lastName,
+
             // Use preferred display name if it is not null, otherwise fall back on first_name + last_name.
-            displayName: $data['displayname'] ?? trim($firstName.' '.$lastName),
+            displayName: $data['displayname']
+                ?? trim($firstName.' '.$lastName),
+
             // Only set 'email' if it is not empty.
             email: ($data['mail'] ?? null) ?: null,
+
             campusPhone: $data['cornelleducampusphone'] ?? null,
             deptName: $data['cornelledudeptname1'] ?? null,
             workingTitle: $data['cornelleduwrkngtitle1'] ?? null,
@@ -95,6 +103,8 @@ class LdapData
     }
 
     /**
+     * Return the LDAP data for a user, cached for 5 minutes by default.
+     *
      * @throws LdapDataException
      */
     public static function get(string $netid, bool $bustCache = false): ?self
@@ -103,7 +113,7 @@ class LdapData
             throw new InvalidArgumentException('LdapData::get requires netid');
         }
 
-        // Return a cached result if we have on and we are not busting the cache.
+        // Return a cached result if we have one and we are not busting the cache.
         $cacheKey = self::class.'::get_'.$netid;
         if ($bustCache) {
             Cache::forget($cacheKey);
@@ -112,6 +122,7 @@ class LdapData
             return $cachedResult;
         }
 
+        // If we don't have a cached result, look it up in LDAP.
         if ($ldapData = self::find($netid)) {
             Cache::put($cacheKey, $ldapData, now()->addSeconds(config('ldap.cache_seconds')));
         }
@@ -120,6 +131,8 @@ class LdapData
     }
 
     /**
+     * Look up a user in LDAP and return their data.
+     *
      * @throws LdapDataException
      */
     public static function find(string $netid, ?bool $debug = false): ?self
@@ -130,17 +143,20 @@ class LdapData
             throw new LdapDataException('Could not connect to LDAP server.');
         }
 
+        // Bind to the LDAP server.
         $result = ldap_bind_ext($connection, "uid=$netid", config('ldap.pass'));
         if (! $result) {
             throw new LdapDataException('Could not bind to LDAP server.');
         }
 
+        // Confirm that the bind was successful.
         $parsed_result = ldap_parse_result($connection, $result, $error_code, $matched_dn,
             $error_message) ?: $error_message;
         if ($parsed_result !== true) {
             throw new LdapDataException("Error response from ldap_bind: $parsed_result");
         }
 
+        // Search for the user in LDAP, parsing the response into a simple array.
         try {
             $result = ldap_search($connection, config('ldap.base_dn'), "uid=$netid");
             if (! $result) {
