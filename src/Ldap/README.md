@@ -1,26 +1,33 @@
-# LdapData
+# LDAP Components
 
-A helper for retrieving Cornell University LDAP data.
+A set of helpers for retrieving Cornell University LDAP data.
 
-This helper wraps standard LDAP PHP extension functions, configured for Cornell University. It encapsulates
-standard Cornell LDAP attributes in a well-defined data structure.
+This package provides two main classes:
+- `LdapSearch`: Handles LDAP queries and caching
+- `LdapData`: An immutable data object that encapsulates Cornell LDAP attributes in a well-defined structure
 
 Environment variables that define the LDAP user and password should be set in the environment. See `.env.example`.
 
 Example usage:
 
 ```php
-use CornellCustomDev\LaravelStarterKit\Ldap\LdapData;
+use CornellCustomDev\LaravelStarterKit\Ldap\LdapSearch;
+
 try {
-  $ldapData = LdapData::get($netid);
+  $ldapData = LdapSearch::getByNetid($netid);
   $displayName = $ldapData->displayName;
-} catch (LdapDataServiceException $e) {
-  ...
+} catch (LdapDataException $e) {
+  // Handle exceptions
 }
 ```
 
-The `LdapService::get()` method caches the query for 300 seconds by default, so multiple calls to the service for the
-same `$netid` value are not expensive.
+The `LdapSearch::getByNetid()` method caches the query for a configurable duration (default 300 seconds), so multiple calls for the same `$netid` value are not expensive.
+
+You can also search for users by netid prefix:
+
+```php
+$users = LdapSearch::searchByNetid('abc');  // returns Collection of LdapData for netids starting with 'abc'
+```
 
 Documentation of all currently parsed fields can be found in [LdapData.php](./LdapData.php).
 
@@ -30,7 +37,7 @@ Documentation of all currently parsed fields can be found in [LdapData.php](./Ld
 legacy `App\Helpers\LDAP` class that exists on many Cornell Laravel sites.
 
 ```php
-$ldapData = LdapData::get($netid)?->ldapData;
+$ldapData = LdapSearch::getByNetid($netid)?->ldapData;
 ```
 
 The value of this property matches the output of `LDAP::data($netid)`, but with the 'count' and 'count_values' keys
@@ -38,6 +45,6 @@ removed.
 
 ## Additional LDAP Attributes
 
-`LdapData::get($netid)->returnedData` is an array of all LDAP attributes returned, keyed by attribute name. The set
+`LdapSearch::getByNetid($netid)->returnedData` is an array of all LDAP attributes returned, keyed by attribute name. The set
 of attributes is a subset of the attributes documented
 at https://confluence.cornell.edu/pages/viewpage.action?spaceKey=IDM&title=Attributes.

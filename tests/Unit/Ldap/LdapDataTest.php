@@ -1,8 +1,9 @@
 <?php
 
-namespace CornellCustomDev\LaravelStarterKit\Tests\Unit;
+namespace CornellCustomDev\LaravelStarterKit\Tests\Unit\Ldap;
 
 use CornellCustomDev\LaravelStarterKit\Ldap\LdapData;
+use CornellCustomDev\LaravelStarterKit\Ldap\LdapSearch;
 use CornellCustomDev\LaravelStarterKit\Tests\TestCase;
 
 class LdapDataTest extends TestCase
@@ -11,7 +12,7 @@ class LdapDataTest extends TestCase
     {
         $ldapResponse = $this->fixture('ldap_search.json', json: true);
 
-        $ldapData = LdapData::parseResponse($ldapResponse);
+        $ldapData = LdapSearch::parseEntry($ldapResponse);
         $result = LdapData::make($ldapData);
 
         $this->assertEquals('tt999', $result->netid);
@@ -33,7 +34,7 @@ class LdapDataTest extends TestCase
     {
         $ldapResponse = $this->fixture('ldap_ferpa.json', json: true);
 
-        $ldapData = LdapData::parseResponse($ldapResponse);
+        $ldapData = LdapSearch::parseEntry($ldapResponse);
         $result = LdapData::make($ldapData);
 
         $this->assertEquals('tt999', $result->netid);
