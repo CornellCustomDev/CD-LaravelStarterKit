@@ -2,6 +2,7 @@
 
 namespace CornellCustomDev\LaravelStarterKit\Tests;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
 use CornellCustomDev\LaravelStarterKit\Ldap\LdapDataServiceProvider;
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
 use InvalidArgumentException;
@@ -9,7 +10,7 @@ use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 class TestCase extends OrchestraTestCase
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         // additional setup
@@ -18,6 +19,7 @@ class TestCase extends OrchestraTestCase
     protected function getPackageProviders($app): array
     {
         return [
+            CUAuthServiceProvider::class,
             StarterKitServiceProvider::class,
             LdapDataServiceProvider::class,
         ];

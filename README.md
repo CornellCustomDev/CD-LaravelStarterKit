@@ -11,9 +11,9 @@ A Cornell University CIT Custom Development starter kit and library for Laravel.
 
 ## Usage
 
-The Starter Kit can be used as a starter kit for a new site or as a library for an existing site.
+The Starter Kit can be used [as a starter kit for a new site](#as-a-starter-kit-for-a-new-site) or [as a library for an existing site](#as-a-library-for-an-existing-site).
 
-### Starter Kit
+### As a Starter Kit for a New Site
 
 Used as a starter kit, this package deploys the cwd_framework_lite infrastructure and standard configuration files. The
 steps below get from a fresh Laravel install to a working site.
@@ -43,12 +43,16 @@ steps below get from a fresh Laravel install to a working site.
    ```shell
    php artisan starterkit:install
    ```
-   This will publish `README.md`, `.env.example`, `.gitignore`, and `.lando.yml` files to the base directory, configured on the project settings and update the `composer.json` file to match. It will also publish HTML/CSS/JS assets from [cwd_framework_lite](https://github.com/CU-CommunityApps/cwd_framework_lite) and a set of [view components](https://laravel.com/docs/9.x/blade#layouts-using-components) that can be used to begin a layout (see `views/cwd-framework-index.blade.php` for example usage).
-   > **NOTE**: The install step updates `.gitignore` so that the vendor directory is no longer excluded. The next commit will be large because it includes everything in the vendor directory.
-   >```shell
-   > git add . && git commit -m "Starter Kit install"
-   > git push
-   >```
+   The `starterkit:install` command prompts for a set of install options:
+   - publish configured [project files](project) to the base directory and update the `composer.json` file to match
+   - publish HTML/CSS/JS theme assets from [cwd_framework_lite](https://github.com/CU-CommunityApps/cwd_framework_lite) 
+   - publish a set of [view components](https://laravel.com/docs/10.x/blade#layouts-using-components) that can be used to begin a layout 
+   - publish [example blade files](resources/views/examples) to see usage of the layout
+   >    **NOTE**: The "project files" option updates `.gitignore` so that the vendor directory is no longer excluded. The next commit will be large because it includes everything in the vendor directory.
+   >   ```shell
+   >    git add . && git commit -m "Starter Kit install"
+   >    git push
+   >   ```
 
 4. Testing the site<br>
    You can confirm the site is working with Lando, since the Starter Kit install process adds a `.lando.yml` file.
@@ -57,24 +61,30 @@ steps below get from a fresh Laravel install to a working site.
    ```
    Then visit https://your-app-name.lndo.site and you should see the default Laravel page. To see the Laravel Starter Kit example page, edit `/resources/views/welcome.blade.php` to be:
     ```blade
-    @include('cwd-framework-index')
+    @include('cd-index')
     ```
 
-### Existing Site
+### As a Library for an Existing Site
 
-For an existing Laravel site, this package can be composer-required to provide the library of classes. In this case, you
-will not need to run the full Starter Kit install.
+For an existing Laravel site, this package can be composer-required to provide the library of classes and optionally install some components.
 
-```php
-composer require --update-no-dev cornell-custom-dev/laravel-starter-kit
-
-```
+1. Composer require the LaravelStarterKit
+    ```shell
+    composer require cornell-custom-dev/laravel-starter-kit
+    ```
+   
+2. Install the Starter Kit
+    ```shell
+    php artisan starterkit:install
+    ```
+   Note: When using as a library or updating an installation, you will not want to install the project files. You may still want to install the theme assets, view components, and possibly example files. Be aware that these will overwrite existing files.
 
 ## Libraries
 
 The libraries included in the Starter Kit are documented in their respective README files:
 
 - [Contact/PhoneNumber](src/Contact/README.md): A library for parsing and formatting a phone number.
+- [CUAuth](src/CUAuth/README.md): A middleware for authorizing Laravel users, mostly for Apache mod_shib authentication.
 - [Ldap/LdapData](src/Ldap/README.md): A service for retrieving Cornell University LDAP data.
 
 

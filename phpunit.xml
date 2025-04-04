@@ -3,15 +3,15 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     bootstrap="vendor/autoload.php"
     colors="true"
-    verbose="true"
     testdox="true"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+    cacheDirectory=".phpunit.cache"
 >
-    <coverage>
+    <source>
         <include>
-            <directory suffix=".php">src/</directory>
+            <directory>src/</directory>
         </include>
-    </coverage>
+    </source>
     <testsuites>
         <testsuite name="Unit">
             <directory>./tests/Unit</directory>
