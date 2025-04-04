@@ -12,7 +12,7 @@ Middleware for authorizing Laravel users.
 
 - **Single Sign-On**: Protect routes with SSO (mod_shib or PHP SAML)
   - Optionally log in SSO users to app user accounts
-- **AppTesters**: Limit access to non-production users
+- **AppTesters**: Limit access on non-production sites to users in the `APP_TESTERS` environment variable
 
 
 ## Single Sign-On

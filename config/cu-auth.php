@@ -48,10 +48,8 @@ return [
     | PHP-SAML Configuration
     |--------------------------------------------------------------------------
     |
-    | Path for storing SAML certificates outside of version control.
-    |
-    | (Note: Configuration for the OneLogin SAML PHP Toolkit is primarily
-    | in config/php-saml-toolkit.php.)
+    | Note: Configuration for the OneLogin SAML PHP Toolkit can be found
+    | in config/php-saml-toolkit.php.
     |
     | The default path of storage/app/keys is ignored by git in a standard
     | Laravel installation, so typically this does not need to be changed.

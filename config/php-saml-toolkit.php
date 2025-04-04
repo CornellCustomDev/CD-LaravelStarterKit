@@ -1,9 +1,19 @@
 <?php
 
 $sp_base_url = env('SAML_BASEURL', env('APP_URL', 'https://localhost'));
-$idp_base_url = (env('APP_ENV') == 'production')
+
+/*
+ | The IDP base url has been tested against CIT shibboleth. It does not
+ | support a discovery service at this time (e.g. CIT idselect).
+ */
+$idp_base_url = env('SAML_IDP_BASEURL', (env('APP_ENV') == 'production')
     ? 'https://shibidp.cit.cornell.edu/idp'
-    : 'https://shibidp-test.cit.cornell.edu/idp';
+    : 'https://shibidp-test.cit.cornell.edu/idp');
+
+/*
+ | The default path of storage/app/keys is ignored by git in a standard
+ | Laravel installation, so typically this does not need to be changed.
+ */
 $cert_path = storage_path(env('SAML_CERT_PATH', 'app/keys'));
 
 return [
