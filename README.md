@@ -87,6 +87,7 @@ The libraries included in the Starter Kit are documented in their respective REA
 
 - [Contact/PhoneNumber](src/Contact/README.md): A library for parsing and formatting a phone number.
 - [CUAuth](src/CUAuth/README.md): A middleware for authorizing Laravel users, mostly for single sign-on with Apache mod_shib or SAML PHP Toolkit.
+- [Ldap/LdapData](src/Ldap/README.md): A service for retrieving Cornell University LDAP data.
 
 ## Deploying a site
 Once a Media3 site has been created, you have confirmed you can reach the default site via a web browser, and you have access to the site login by command line, the code can be deployed.

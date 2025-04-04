@@ -3,6 +3,7 @@
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature;
 
 use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
+use CornellCustomDev\LaravelStarterKit\Ldap\LdapDataServiceProvider;
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
 use CornellCustomDev\LaravelStarterKit\Tests\TestCase;
 use Illuminate\Support\Facades\File;
@@ -52,6 +53,8 @@ class InstallStarterKitTest extends TestCase
         $this->assertFileExists("$basePath/config/cu-auth.php");
         $this->assertFileExists("$basePath/config/php-saml-toolkit.php");
         $this->assertFileExists("$basePath/storage/app/keys/idp_cert.pem");
+        $this->assertFileExists("$basePath/config/ldap.php");
+
     }
 
     public function testDeletesInstallFilesBeforeTests()
@@ -149,7 +152,7 @@ class InstallStarterKitTest extends TestCase
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml-toolkit', 'certs',
+                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml-toolkit', 'certs', 'ldap',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
@@ -272,5 +275,39 @@ class InstallStarterKitTest extends TestCase
         // Confirm we can get the certs via the config
         config(['php-saml-toolkit.idp.x509cert' => File::get("$basePath/storage/app/keys/idp_cert.pem")]);
         $this->assertStringContainsString('test-idp-cert-contents', config('php-saml-toolkit.idp.x509cert'));
+    }
+
+    public function testCanInstallLdapConfigFiles()
+    {
+        $basePath = $this->getApplicationBasePath();
+        $ldapConfigFile = 'config/ldap.php';
+        $defaultServer = 'ldaps://query.directory.cornell.edu';
+        $testServer = 'ldaps://test.directory.cornell.edu';
+
+        File::delete("$basePath/$ldapConfigFile");
+        $this->refreshApplication();
+
+        // Default value is provided via the service provider.
+        $ldapServer = config('ldap.server');
+        $this->assertEquals($defaultServer, $ldapServer);
+
+        $this->artisan(
+            command: 'vendor:publish',
+            parameters: [
+                '--tag' => StarterKitServiceProvider::PACKAGE_NAME.':'.LdapDataServiceProvider::INSTALL_CONFIG_TAG,
+                '--force' => true,
+            ])
+            ->assertSuccessful();
+
+        // Update the config file with a test value for ldap.server.
+        File::put("$basePath/$ldapConfigFile", str_replace(
+            $defaultServer,
+            $testServer,
+            File::get("$basePath/$ldapConfigFile")
+        ));
+        $this->refreshApplication();
+
+        $ldapServer = config('ldap.server');
+        $this->assertEquals($testServer, $ldapServer);
     }
 }
