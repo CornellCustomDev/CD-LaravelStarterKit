@@ -27,8 +27,7 @@ class LdapData
         public ?array $previousEmplids,
         public array $ldapData = [],
         public array $returnedData = []
-    ) {
-    }
+    ) {}
 
     /**
      * Create a new LdapData object from an array of LDAP data.
