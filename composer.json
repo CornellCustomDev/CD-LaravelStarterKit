@@ -31,7 +31,7 @@
     "laravel": {
       "providers": [
         "CornellCustomDev\\LaravelStarterKit\\StarterKitServiceProvider",
-        "CornellCustomDev\\LaravelStarterKit\\CUAuth\\CUAuthServiceProvider"
+        "CornellCustomDev\\LaravelStarterKit\\CUAuth\\CUAuthServiceProvider",
         "CornellCustomDev\\LaravelStarterKit\\Ldap\\LdapDataServiceProvider"
       ]
     }
