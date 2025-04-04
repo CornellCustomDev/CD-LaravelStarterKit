@@ -32,7 +32,7 @@ Route::group(['middleware' => [CUAuth::class]], function () {
 ```dotenv
 # File: .env
 # apache-shib (default) | php-saml
-CU_AUTH_IDENTITY_MANGER=apache-shib
+CU_AUTH_IDENTITY_MANAGER=apache-shib
 ```
 
 See [Authorization](#identity-and-authorization) for details on how to log in remote users for local authorization.
