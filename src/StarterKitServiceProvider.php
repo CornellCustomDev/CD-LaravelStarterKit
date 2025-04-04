@@ -159,7 +159,11 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
 
         if ($install->contains('cu-auth')) {
-            $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_CONFIG_TAG);
+            $this->publishTag($command, self::PACKAGE_NAME.':'.CUAuth\CUAuthServiceProvider::INSTALL_CONFIG_TAG);
+        }
+
+        if ($install->contains('ldap')) {
+            $this->publishTag($command, self::PACKAGE_NAME.':'.Ldap\LdapDataServiceProvider::INSTALL_CONFIG_TAG);
         }
 
         info('Installation complete.');

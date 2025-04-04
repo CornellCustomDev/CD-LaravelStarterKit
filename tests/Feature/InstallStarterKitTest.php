@@ -3,6 +3,7 @@
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature;
 
 use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
+use CornellCustomDev\LaravelStarterKit\Ldap\LdapDataServiceProvider;
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
 use CornellCustomDev\LaravelStarterKit\Tests\TestCase;
 use Illuminate\Support\Facades\File;
@@ -29,7 +30,7 @@ class InstallStarterKitTest extends TestCase
 
     public function testCanRunAllInstallations()
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $themeName = StarterKitServiceProvider::THEME_NAME;
         $projectName = 'Test Project';
 
@@ -57,7 +58,7 @@ class InstallStarterKitTest extends TestCase
     public function testDeletesInstallFilesBeforeTests()
     {
         // Confirm no files are in the resources/views directory other than the default welcome.blade.php file
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $files = File::files("$basePath/resources/views");
         $this->assertCount(1, $files);
         $this->assertEquals('welcome.blade.php', $files[0]->getFilename());
@@ -111,7 +112,7 @@ class InstallStarterKitTest extends TestCase
             ]
         );
         // Confirm that the readme file has the default content
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $readmeContents = File::get("$basePath/README.md");
         $this->assertStringContainsString(':project_name', $readmeContents);
 
@@ -130,7 +131,7 @@ class InstallStarterKitTest extends TestCase
 
     private function resetInstallFiles(): void
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $themeName = StarterKitServiceProvider::THEME_NAME;
 
         // Delete files from previous tests
@@ -147,7 +148,7 @@ class InstallStarterKitTest extends TestCase
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples', 'cu-auth',
+                'files', 'assets', 'components', 'examples', 'cu-auth', 'ldap',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
@@ -157,7 +158,7 @@ class InstallStarterKitTest extends TestCase
 
     private function assertContentUpdated(string $projectName, string $projectDescription): void
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
 
         $readmeContents = File::get("$basePath/README.md");
         $this->assertStringContainsString($projectName, $readmeContents);
@@ -178,7 +179,7 @@ class InstallStarterKitTest extends TestCase
 
     public function testCanInstallCUAuthConfigFiles()
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $defaultVariable = 'REMOTE_USER';
         $testVariable = 'REDIRECT_REMOTE_USER';
         // Make sure we have config values
@@ -209,7 +210,7 @@ class InstallStarterKitTest extends TestCase
 
     public function testCanInstallLdapConfigFiles()
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->getApplicationBasePath();
         $ldapConfigFile = 'config/ldap.php';
         $defaultServer = 'ldaps://query.directory.cornell.edu';
         $testServer = 'ldaps://test.directory.cornell.edu';
@@ -221,8 +222,13 @@ class InstallStarterKitTest extends TestCase
         $ldapServer = config('ldap.server');
         $this->assertEquals($defaultServer, $ldapServer);
 
-        $this->artisan('vendor:publish --tag=ldap-config --force')
-            ->assertExitCode(Command::SUCCESS);
+        $this->artisan(
+            command: 'vendor:publish',
+            parameters: [
+                '--tag' => StarterKitServiceProvider::PACKAGE_NAME.':'.LdapDataServiceProvider::INSTALL_CONFIG_TAG,
+                '--force' => true,
+            ])
+            ->assertSuccessful();
 
         // Update the config file with a test value for ldap.server.
         File::put("$basePath/$ldapConfigFile", str_replace(

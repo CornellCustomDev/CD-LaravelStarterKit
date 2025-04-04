@@ -7,6 +7,8 @@ use Illuminate\Support\ServiceProvider;
 
 class LdapDataServiceProvider extends ServiceProvider
 {
+    const INSTALL_CONFIG_TAG = 'starterkit-ldap-config';
+
     public function register(): void
     {
         $this->mergeConfigFrom(
@@ -18,15 +20,9 @@ class LdapDataServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->publishes(
-                paths: [
-                    __DIR__.'/../../config/ldap.php' => config_path('ldap.php'),
-                ],
-                groups: [
-                    StarterKitServiceProvider::PACKAGE_NAME.':config',
-                    'ldap-config',
-                ],
-            );
+            $this->publishes([
+                __DIR__.'/../../config/ldap.php' => config_path('ldap.php'),
+            ], StarterKitServiceProvider::PACKAGE_NAME.':'.self::INSTALL_CONFIG_TAG);
         }
     }
 }
