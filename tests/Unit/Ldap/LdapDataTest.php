@@ -15,7 +15,8 @@ class LdapDataTest extends TestCase
         $ldapData = LdapSearch::parseEntry($ldapResponse);
         $result = LdapData::make($ldapData);
 
-        $this->assertEquals('tt999', $result->netid);
+        $this->assertEquals('tt999', $result->uid);
+        $this->assertEquals('tt999@cornell.edu', $result->principalName);
         $this->assertEquals('9999999', $result->emplid);
         $this->assertEquals('Testy', $result->firstName);
         $this->assertEquals('Testerson', $result->lastName);
@@ -37,7 +38,8 @@ class LdapDataTest extends TestCase
         $ldapData = LdapSearch::parseEntry($ldapResponse);
         $result = LdapData::make($ldapData);
 
-        $this->assertEquals('tt999', $result->netid);
+        $this->assertEquals('tt999', $result->uid);
+        $this->assertEquals('tt999@cornell.edu', $result->principalName);
         $this->assertEquals('9999999', $result->emplid);
         $this->assertEquals('Cornell', $result->firstName);
         $this->assertEquals('Student', $result->lastName);

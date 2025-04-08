@@ -9,7 +9,7 @@ class LdapData
 {
     public function __construct(
         public string $uid,
-        public string $eduPersonPrincipalName,
+        public string $principalName,
         public string $emplid,
         public ?string $firstName,
         public ?string $lastName,
@@ -83,7 +83,8 @@ class LdapData
 
         return new LdapData(
             uid: $data['uid'],
-            eduPersonPrincipalName: $data['edupersonprincipalname'],
+            principalName: $data['edupersonprincipalname']
+                ?? $data['uid'].'@cornell.edu',
             emplid: $data['cornelleduemplid'] ?? '',
 
             firstName: $firstName,
@@ -108,14 +109,20 @@ class LdapData
         );
     }
 
-    public function uid(): string
+    /**
+     * Provides an id that is unique within the IdP, i.e., NetID or CWID
+     */
+    public function id(): string
     {
         return $this->uid;
     }
 
+    /*
+     * Returns the eduPersonPrincipalName
+     */
     public function principalName(): string
     {
-        return $this->eduPersonPrincipalName;
+        return $this->principalName;
     }
 
     /**
@@ -123,10 +130,13 @@ class LdapData
      */
     public function email(): string
     {
-        return $this->email ?: $this->eduPersonPrincipalName;
+        return $this->email ?: $this->principalName;
     }
 
-    public function displayName(): string
+    /**
+     * Returns the display name if available, otherwise the common name, fallback is "givenName sn".
+     */
+    public function name(): string
     {
         return $this->displayName;
     }
