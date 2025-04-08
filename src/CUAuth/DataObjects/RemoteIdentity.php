@@ -7,6 +7,7 @@ readonly class RemoteIdentity
     public function __construct(
         public string $idp,
         public string $uid,
+        public string $principalName = '',
         public string $displayName = '',
         public string $email = '',
         public array $data = [],
@@ -26,12 +27,13 @@ readonly class RemoteIdentity
         return new RemoteIdentity(
             idp: $idp,
             uid: $uid,
+            principalName: $eduPersonPrincipalName
+                ?? $mail
+                ?? $uid,
             displayName: $displayName
                 ?? $cn
                 ?? trim(($givenName ?? '').' '.($sn ?? '')),
-            email: $eduPersonPrincipalName
-                ?? $mail
-                ?? '',
+            email: $mail ?: null,
             data: $data,
         );
     }
@@ -55,12 +57,20 @@ readonly class RemoteIdentity
         };
     }
 
+    /*
+     * Returns the eduPersonPrincipalName
+     */
+    public function principalName(): string
+    {
+        return $this->principalName;
+    }
+
     /**
      * Returns the primary email (netid@cornell.edu|cwid@med.cornell.edu) if available, otherwise the alias email.
      */
     public function email(): string
     {
-        return $this->email;
+        return $this->principalName ?: $this->email;
     }
 
     /**
