@@ -8,7 +8,8 @@ namespace CornellCustomDev\LaravelStarterKit\Ldap;
 class LdapData
 {
     public function __construct(
-        public string $netid,
+        public string $uid,
+        public string $eduPersonPrincipalName,
         public string $emplid,
         public ?string $firstName,
         public ?string $lastName,
@@ -81,7 +82,8 @@ class LdapData
         ];
 
         return new LdapData(
-            netid: $data['uid'],
+            uid: $data['uid'],
+            eduPersonPrincipalName: $data['edupersonprincipalname'],
             emplid: $data['cornelleduemplid'] ?? '',
 
             firstName: $firstName,
@@ -104,5 +106,28 @@ class LdapData
             ldapData: $ldapData,
             returnedData: $data,
         );
+    }
+
+    public function uid(): string
+    {
+        return $this->uid;
+    }
+
+    public function principalName(): string
+    {
+        return $this->eduPersonPrincipalName;
+    }
+
+    /**
+     * Returns the primary email (netid@cornell.edu) if available, otherwise the alias email.
+     */
+    public function email(): string
+    {
+        return $this->email ?: $this->eduPersonPrincipalName;
+    }
+
+    public function displayName(): string
+    {
+        return $this->displayName;
     }
 }
