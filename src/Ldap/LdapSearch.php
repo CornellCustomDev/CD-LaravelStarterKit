@@ -18,9 +18,8 @@ class LdapSearch
      *  See https://confluence.cornell.edu/display/IDM/Attributes
      */
     public const DEFAULT_ATTRIBUTES = [
-        'cornelledunetid',
-        'cn',
         'uid',
+        'edupersonprincipalname',
         'displayName',
         'givenName',
         'sn',
