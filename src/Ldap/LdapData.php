@@ -48,6 +48,14 @@ class LdapData
         // Secondary affiliation is the first affiliation that is not the primary affiliation.
         $secondaryAffiliation = $affiliationCollection->reject($primaryAffiliation)->first() ?? '';
 
+        // Process previousNetids: always convert the comma-separated string to an array.
+        $previousNetIds = collect(explode(',', $data['cornelledupreviousnetids'] ?? ''))
+            ->map(fn ($id) => trim($id))->filter()->all();
+
+        // Same for previousEmplids
+        $previousEmplids = collect(explode(',', $data['cornelledupreviousemplids'] ?? ''))
+            ->map(fn ($id) => trim($id))->filter()->all();
+
         // User may have exercised FERPA right to suppress name.
         if (empty($firstName) && empty($lastName)) {
             $firstName = 'Cornell';
@@ -91,8 +99,8 @@ class LdapData
             workingTitle: $data['cornelleduwrkngtitle1'] ?? null,
             primaryAffiliation: $primaryAffiliation ?: null,
             affiliations: $affiliations,
-            previousNetids: $data['cornelledupreviousnetids'] ?? null,
-            previousEmplids: $data['cornelledupreviousemplids'] ?? null,
+            previousNetids: $previousNetIds ?: null,
+            previousEmplids: $previousEmplids ?: null,
             ldapData: $ldapData,
             returnedData: $data,
         );

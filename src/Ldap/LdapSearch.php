@@ -36,49 +36,44 @@ class LdapSearch
     ];
 
     /**
-     * Return the LDAP data for a user, cached for 5 minutes by default.
-     *
-     * @throws InvalidArgumentException
      * @throws LdapDataException
      */
-    public static function getByNetid(string $netid, bool $bustCache = false, ?bool $debug = false): ?LdapData
+    public static function getByNetid(string $netid, bool $bustCache = false): ?LdapData
     {
-        if (empty($netid)) {
-            throw new InvalidArgumentException('LdapData::get requires netid');
+        if (empty(trim($netid))) {
+            throw new InvalidArgumentException('LdapSearch::getByNetid requires a search term');
         }
 
-        $cacheKey = LdapData::class.'::get_'.$netid;
-        if ($bustCache) {
-            Cache::forget($cacheKey);
-        }
-
-        $ldapData = Cache::remember(
-            key: $cacheKey,
-            ttl: now()->addSeconds(config('ldap.cache_seconds')),
-            callback: fn () => LdapSearch::performSearch("(uid=$netid)")?->get($netid)
-        );
-
-        if ($debug && $ldapData) {
-            dump(json_encode($ldapData->returnedData));
-        }
-
-        return $ldapData;
+        return self::search("(uid=$netid*)", $bustCache)?->first();
     }
 
     /**
-     * Search LDAP for users with netids starting with the given word.
+     * @throws LdapDataException
+     */
+    public static function getByEmail(string $email, bool $bustCache = false): ?LdapData
+    {
+        if (empty(trim($email))) {
+            throw new InvalidArgumentException('LdapSearch::getByEmail requires a search term');
+        }
+
+        return self::search("(mail=$email)", $bustCache)?->first();
+    }
+
+    /**
+     * Search LDAP for users with netids starting with the given word, cached by default.
      *
      * @throws InvalidArgumentException
      * @throws LdapDataException
      */
-    public static function searchByNetid(string $word, bool $bustCache = false, ?array $attributes = null): ?Collection
+    public static function search(string $filter, bool $bustCache = false, ?array $attributes = null): ?Collection
     {
-        if (empty($word)) {
-            throw new InvalidArgumentException('LdapSearch::searchByNetid requires a search term');
+        // Trap for empty strings
+        if (empty(trim($filter))) {
+            throw new InvalidArgumentException('LdapSearch::search requires a search term');
         }
         $attributes ??= self::DEFAULT_ATTRIBUTES;
 
-        $cacheKey = self::class.'::searchByNetid_'.$word;
+        $cacheKey = 'LdapSearch::search_'.md5($filter);
         if ($bustCache) {
             Cache::forget($cacheKey);
         }
@@ -86,12 +81,12 @@ class LdapSearch
         return Cache::remember(
             key: $cacheKey,
             ttl: now()->addSeconds(config('ldap.cache_seconds')),
-            callback: fn () => self::performSearch("(uid=$word*)", $attributes),
+            callback: fn () => self::performSearch($filter, $attributes),
         );
     }
 
     /**
-     * Perform an LDAP search with the given filter.
+     * Perform an LDAP search with the given filter, returning a collection of LdapData objects.
      *
      * @throws LdapDataException
      */
