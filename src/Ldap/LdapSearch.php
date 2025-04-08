@@ -57,7 +57,7 @@ class LdapSearch
             throw new InvalidArgumentException('LdapSearch::getByEmail requires a search term');
         }
 
-        return self::search("(mail=$email)", $bustCache)?->first();
+        return self::search("(|(mail=$email)(edupersonprincipalname=$email))", $bustCache)?->first();
     }
 
     /**
