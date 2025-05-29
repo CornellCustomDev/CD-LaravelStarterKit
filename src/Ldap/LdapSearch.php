@@ -37,6 +37,8 @@ class LdapSearch
     ];
 
     /**
+     * Search LDAP for users with netids starting with the given word, cached by default.
+     *
      * @throws LdapDataException
      */
     public static function getByNetid(string $netid, bool $bustCache = false): ?LdapData
@@ -61,7 +63,7 @@ class LdapSearch
     }
 
     /**
-     * Search LDAP for users with netids starting with the given word, cached by default.
+     * Search LDAP, cached by default, returning a collection of LdapData objects.
      *
      * @throws InvalidArgumentException
      * @throws LdapDataException
@@ -84,6 +86,22 @@ class LdapSearch
             ttl: now()->addSeconds(config('ldap.cache_seconds')),
             callback: fn () => self::performSearch($filter, $attributes),
         );
+    }
+
+    /**
+     * Search LDAP without caching, returning a collection of LdapData objects.
+     *
+     * @throws LdapDataException
+     */
+    public static function bulkSearch(string $filter, ?array $attributes = null): ?Collection
+    {
+        // Trap for empty strings
+        if (empty(trim($filter))) {
+            throw new InvalidArgumentException('LdapSearch::batchSearch requires a search term');
+        }
+        $attributes ??= self::DEFAULT_ATTRIBUTES;
+
+        return self::performSearch($filter, $attributes);
     }
 
     /**
