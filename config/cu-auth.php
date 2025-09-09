@@ -11,7 +11,7 @@ return [
     | - php-saml: OneLogin SAML PHP Toolkit
     |
     */
-    'identity_manager' => env('CU_AUTH_IDENTITY_MANGER', 'apache-shib'),
+    'identity_manager' => env('CU_AUTH_IDENTITY_MANAGER', 'apache-shib'),
 
     /*
     |--------------------------------------------------------------------------
