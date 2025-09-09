@@ -51,4 +51,79 @@ class LdapDataTest extends TestCase
         $this->assertEquals('student', $result->primaryAffiliation);
         $this->assertEquals(['alumni', 'student'], $result->affiliations);
     }
+
+    public function testSecondaryAffiliationScenarios()
+    {
+        // No affiliations
+        $data = [
+            'uid' => 'tt999',
+        ];
+        $result = LdapData::make($data);
+        $this->assertEquals([], $result->affiliations);
+        $this->assertEquals('', $result->primaryAffiliation);
+        $this->assertEquals('', $result->ldapData['secondaryaffiliation']);
+
+        // Single affiliation
+        $data = [
+            'uid' => 'tt999',
+            'cornelleduaffiliation' => 'staff',
+        ];
+        $result = LdapData::make($data);
+        $this->assertEquals(['staff'], $result->affiliations);
+        $this->assertEquals('staff', $result->primaryAffiliation);
+        $this->assertEquals('', $result->ldapData['secondaryaffiliation']);
+
+        // Multiple affiliations, primary defined (primary in list)
+        $data = [
+            'uid' => 'tt999',
+            'cornelleduaffiliation' => ['staff', 'employee'],
+            'cornelleduprimaryaffiliation' => 'employee',
+        ];
+        $result = LdapData::make($data);
+        $this->assertEquals(['staff', 'employee'], $result->affiliations);
+        $this->assertEquals('employee', $result->primaryAffiliation);
+        $this->assertEquals('staff', $result->ldapData['secondaryaffiliation']);
+
+        // Multiple affiliations, primary not defined (first element becomes primary)
+        $data = [
+            'uid' => 'tt999',
+            'cornelleduaffiliation' => ['staff', 'employee'],
+        ];
+        $result = LdapData::make($data);
+        $this->assertEquals(['staff', 'employee'], $result->affiliations);
+        $this->assertEquals('staff', $result->primaryAffiliation);
+        $this->assertEquals('employee', $result->ldapData['secondaryaffiliation']);
+
+        // Multiple affiliations, primary not in list
+        $data = [
+            'uid' => 'tt999',
+            'cornelleduaffiliation' => ['staff', 'employee'],
+            'cornelleduprimaryaffiliation' => 'faculty',
+        ];
+        $result = LdapData::make($data);
+        $this->assertEquals(['staff', 'employee'], $result->affiliations);
+        $this->assertEquals('faculty', $result->primaryAffiliation);
+        $this->assertEquals('staff', $result->ldapData['secondaryaffiliation']);
+
+        // Three affiliations, primary defined as middle element
+        $data = [
+            'uid' => 'tt999',
+            'cornelleduaffiliation' => ['staff', 'student', 'employee'],
+            'cornelleduprimaryaffiliation' => 'student',
+        ];
+        $result = LdapData::make($data);
+        $this->assertEquals(['staff', 'student', 'employee'], $result->affiliations);
+        $this->assertEquals('student', $result->primaryAffiliation);
+        $this->assertEquals('staff', $result->ldapData['secondaryaffiliation']);
+
+        // Three affiliations, no primary defined (first becomes primary, second becomes secondary)
+        $data = [
+            'uid' => 'tt999',
+            'cornelleduaffiliation' => ['staff', 'student', 'employee'],
+        ];
+        $result = LdapData::make($data);
+        $this->assertEquals(['staff', 'student', 'employee'], $result->affiliations);
+        $this->assertEquals('staff', $result->primaryAffiliation);
+        $this->assertEquals('student', $result->ldapData['secondaryaffiliation']);
+    }
 }
