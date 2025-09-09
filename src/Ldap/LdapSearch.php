@@ -6,6 +6,9 @@ use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
+use LDAP\Connection;
+use LDAP\Result;
+use LDAP\ResultEntry;
 
 /**
  * Class for searching Cornell LDAP directory.
@@ -47,7 +50,10 @@ class LdapSearch
             throw new InvalidArgumentException('LdapSearch::getByNetid requires a search term');
         }
 
-        return self::search("(uid=$netid*)", $bustCache)?->first();
+        /** @var Collection<string,LdapData> $results */
+        $results = self::search("(uid=$netid*)", $bustCache);
+
+        return $results->first();
     }
 
     /**
@@ -59,7 +65,10 @@ class LdapSearch
             throw new InvalidArgumentException('LdapSearch::getByEmail requires a search term');
         }
 
-        return self::search("(|(mail=$email)(edupersonprincipalname=$email))", $bustCache)?->first();
+        /** @var Collection<string,LdapData> $results */
+        $results = self::search("(|(mail=$email)(edupersonprincipalname=$email))", $bustCache);
+
+        return $results->first();
     }
 
     /**
@@ -68,8 +77,12 @@ class LdapSearch
      * @throws InvalidArgumentException
      * @throws LdapDataException
      */
-    public static function search(string $filter, bool $bustCache = false, ?array $attributes = null): ?Collection
-    {
+    public static function search(
+        string $filter,
+        bool $bustCache = false,
+        ?array $attributes = null,
+        ?bool $withLdapData = true,
+    ): Collection {
         // Trap for empty strings
         if (empty(trim($filter))) {
             throw new InvalidArgumentException('LdapSearch::search requires a search term');
@@ -84,7 +97,7 @@ class LdapSearch
         return Cache::remember(
             key: $cacheKey,
             ttl: now()->addSeconds(config('ldap.cache_seconds')),
-            callback: fn () => self::performSearch($filter, $attributes),
+            callback: fn () => self::performSearch($filter, $attributes, $withLdapData),
         );
     }
 
@@ -93,15 +106,18 @@ class LdapSearch
      *
      * @throws LdapDataException
      */
-    public static function bulkSearch(string $filter, ?array $attributes = null): ?Collection
-    {
+    public static function bulkSearch(
+        string $filter,
+        ?array $attributes = null,
+        ?bool $withLdapData = false,
+    ): Collection {
         // Trap for empty strings
         if (empty(trim($filter))) {
             throw new InvalidArgumentException('LdapSearch::batchSearch requires a search term');
         }
         $attributes ??= self::DEFAULT_ATTRIBUTES;
 
-        return self::performSearch($filter, $attributes);
+        return self::performSearch($filter, $attributes, $withLdapData);
     }
 
     /**
@@ -109,8 +125,11 @@ class LdapSearch
      *
      * @throws LdapDataException
      */
-    private static function performSearch(string $filter, ?array $attributes = null): ?Collection
-    {
+    private static function performSearch(
+        string $filter,
+        ?array $attributes = null,
+        bool $withLdapData = true,
+    ): Collection {
         $attributes ??= self::DEFAULT_ATTRIBUTES;
 
         try {
@@ -121,8 +140,11 @@ class LdapSearch
             }
 
             // Set options for performance
-            ldap_set_option($connection, LDAP_OPT_SIZELIMIT, 1000);
+            ldap_set_option($connection, LDAP_OPT_SIZELIMIT, 1100);
             ldap_set_option($connection, LDAP_OPT_TIMELIMIT, 3);
+            // Assure LDAPv3 and for security disable referrals
+            ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
+            ldap_set_option($connection, LDAP_OPT_REFERRALS, 0);
 
             // Bind to the LDAP server
             $result = ldap_bind_ext($connection, 'uid='.config('ldap.user'), config('ldap.pass'));
@@ -139,21 +161,22 @@ class LdapSearch
 
             // Perform the LDAP search
             $result = ldap_search($connection, config('ldap.base_dn'), $filter, $attributes);
-            if (! $result) {
-                return null;
+            if ($result === false) {
+                // If there is an error, the result will be false
+                throw new LdapDataException('Error performing LDAP search: '.ldap_error($connection));
             }
 
-            $entries = ldap_get_entries($connection, $result);
-            if (! $entries || $entries['count'] === 0) {
-                return null;
+            $entry_count = ldap_count_entries($connection, $result);
+            if (empty($entry_count)) {
+                return collect();
             }
 
-            return self::parseSearchResults($entries);
-
+            return self::parseSearchResults($connection, $result, $withLdapData);
         } catch (Exception $e) {
             throw new LdapDataException($e->getMessage());
         } finally {
-            if (isset($connection) && $connection) {
+            // Close the LDAP connection
+            if (isset($connection) && is_resource($connection)) {
                 ldap_close($connection);
             }
         }
@@ -161,24 +184,36 @@ class LdapSearch
 
     /**
      * Parse LDAP search results into a collection of LdapData objects.
-     *
-     * @param  array  $entries  Raw LDAP search results
-     * @return Collection Collection of LdapData objects indexed by uid
      */
-    protected static function parseSearchResults(array $entries): Collection
-    {
-        $count = $entries['count'];
+    protected static function parseSearchResults(
+        Connection $connection,
+        Result $result,
+        bool $withLdapData,
+    ): Collection {
         $results = collect();
 
-        for ($i = 0; $i < $count; $i++) {
-            $entry = $entries[$i];
-            $parsedEntry = self::parseEntry($entry);
+        $entry = ldap_first_entry($connection, $result);
+        if ($entry === false) {
+            // If there is an error, the ldap_first_entry result will be false
+            throw new LdapDataException('Error getting LDAP entry: '.ldap_error($connection));
+        }
+
+        while ($entry) {
+            $parsedEntry = self::parseEntry($connection, $entry);
 
             if (isset($parsedEntry['uid'])) {
-                $ldapData = LdapData::make($parsedEntry);
+                $ldapData = LdapData::make($parsedEntry, $withLdapData);
                 if ($ldapData) {
                     $results->put($parsedEntry['uid'], $ldapData);
                 }
+            }
+
+            // Move to next entry
+            $entry = ldap_next_entry($connection, $entry);
+
+            // Periodically collect garbage
+            if ($results->count() % 100 === 0) {
+                gc_collect_cycles();
             }
         }
 
@@ -188,11 +223,21 @@ class LdapSearch
     /**
      * Parse an entry from ldap_search into a simple array.
      */
-    public static function parseEntry(?array $entry = []): array
+    public static function parseEntry(Connection $connection, ResultEntry $entry): array
     {
-        unset($entry['dn']);
+        $attributes = ldap_get_attributes($connection, $entry);
+
+        return self::normalizeAttributes($attributes);
+    }
+
+    /**
+     * Normalize LDAP attributes array into a simple key-value array.
+     */
+    public static function normalizeAttributes(array $attributes): array
+    {
+        unset($attributes['dn']);
         $data = [];
-        foreach ($entry as $key => $value) {
+        foreach ($attributes as $key => $value) {
             if (is_numeric($key) || $key == 'count') {
                 continue;
             }

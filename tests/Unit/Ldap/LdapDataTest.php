@@ -12,7 +12,7 @@ class LdapDataTest extends TestCase
     {
         $ldapResponse = $this->fixture('ldap_search.json', json: true);
 
-        $ldapData = LdapSearch::parseEntry($ldapResponse);
+        $ldapData = LdapSearch::normalizeAttributes($ldapResponse);
         $result = LdapData::make($ldapData);
 
         $this->assertEquals('tt999', $result->uid);
@@ -35,7 +35,7 @@ class LdapDataTest extends TestCase
     {
         $ldapResponse = $this->fixture('ldap_ferpa.json', json: true);
 
-        $ldapData = LdapSearch::parseEntry($ldapResponse);
+        $ldapData = LdapSearch::normalizeAttributes($ldapResponse);
         $result = LdapData::make($ldapData);
 
         $this->assertEquals('tt999', $result->uid);

@@ -30,8 +30,11 @@ class LdapData
      * Create a new LdapData object from an array of LDAP data.
      *
      * See https://confluence.cornell.edu/display/IDM/Attributes
+     *
+     * @param  array  $data  The LDAP data array, typically from a search result.
+     * @param  bool  $withLdapData  Whether to include the LDAP data in the returned object.
      */
-    public static function make(array $data): ?LdapData
+    public static function make(array $data, bool $withLdapData = true): ?LdapData
     {
         // Use preferred first name if it is not null, otherwise use givenName.
         $firstName = ($data['cornelleduprefgivenname'] ?? null) ?: ($data['givenName'] ?? null);
@@ -104,8 +107,8 @@ class LdapData
             affiliations: $affiliations,
             previousNetids: $previousNetIds ?: null,
             previousEmplids: $previousEmplids ?: null,
-            ldapData: $ldapData,
-            returnedData: $data,
+            ldapData: $withLdapData ? $ldapData : [],
+            returnedData: $withLdapData ? $data : [],
         );
     }
 

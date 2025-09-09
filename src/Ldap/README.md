@@ -12,6 +12,7 @@ Example usage:
 
 ```php
 use CornellCustomDev\LaravelStarterKit\Ldap\LdapSearch;
+use CornellCustomDev\LaravelStarterKit\Ldap\LdapDataException;
 
 try {
   $ldapData = LdapSearch::getByNetid($netid);
