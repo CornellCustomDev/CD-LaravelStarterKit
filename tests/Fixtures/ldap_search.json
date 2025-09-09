@@ -1,0 +1,218 @@
+{
+  "modifytimestamp": {
+    "count": 1,
+    "0": "20230928193104Z"
+  },
+  "0": "modifytimestamp",
+  "mailalternateaddress": {
+    "count": 1,
+    "0": "testerson"
+  },
+  "1": "mailalternateaddress",
+  "edupersonorgdn": {
+    "count": 1,
+    "0": "O=cornell university,C=us"
+  },
+  "2": "edupersonorgdn",
+  "cornelleducampusaddress": {
+    "count": 1,
+    "0": "120 Maple Ave, Room 272"
+  },
+  "3": "cornelleducampusaddress",
+  "cornelleduasciidisplayname": {
+    "count": 1,
+    "0": "Testy Testerson"
+  },
+  "4": "cornelleduasciidisplayname",
+  "createtimestamp": {
+    "count": 1,
+    "0": "20190305134442Z"
+  },
+  "5": "createtimestamp",
+  "c": {
+    "count": 1,
+    "0": "US"
+  },
+  "6": "c",
+  "cornelleduemplid": {
+    "count": 1,
+    "0": "9999999"
+  },
+  "7": "cornelleduemplid",
+  "sn": {
+    "count": 1,
+    "0": "Testerson"
+  },
+  "8": "sn",
+  "cornelledunetid": {
+    "count": 1,
+    "0": "tt999"
+  },
+  "9": "cornelledunetid",
+  "o": {
+    "count": 1,
+    "0": "Cornell University"
+  },
+  "10": "o",
+  "cornelledunamesuffix": {
+    "count": 1,
+    "0": ""
+  },
+  "11": "cornelledunamesuffix",
+  "edupersonprincipalname": {
+    "count": 1,
+    "0": "tt999@cornell.edu"
+  },
+  "12": "edupersonprincipalname",
+  "uid": {
+    "count": 1,
+    "0": "tt999"
+  },
+  "13": "uid",
+  "objectclass": {
+    "count": 9,
+    "0": "top",
+    "1": "person",
+    "2": "organizationalperson",
+    "3": "inetOrgPerson",
+    "4": "mailrecipient",
+    "5": "eduperson",
+    "6": "cornelleduperson",
+    "7": "mailgroup",
+    "8": "account"
+  },
+  "14": "objectclass",
+  "givenname": {
+    "count": 1,
+    "0": "Testy"
+  },
+  "15": "givenname",
+  "cornelleduprefsn": {
+    "count": 1,
+    "0": "Testerson"
+  },
+  "16": "cornelleduprefsn",
+  "cornelleduprimaryaffiliation": {
+    "count": 1,
+    "0": "staff"
+  },
+  "17": "cornelleduprimaryaffiliation",
+  "cornelledumaildelivery": {
+    "count": 2,
+    "0": "exchange",
+    "1": "o365direct"
+  },
+  "18": "cornelledumaildelivery",
+  "cornelleduaffiliation": {
+    "count": 1,
+    "0": "staff"
+  },
+  "19": "cornelleduaffiliation",
+  "cornelleduprefgivenname": {
+    "count": 1,
+    "0": "Testy"
+  },
+  "20": "cornelleduprefgivenname",
+  "cornelledutype": {
+    "count": 1,
+    "0": "staff"
+  },
+  "21": "cornelledutype",
+  "cornelledumailroutingtime": {
+    "count": 1,
+    "0": "20190305084443"
+  },
+  "22": "cornelledumailroutingtime",
+  "edupersonprimaryaffiliation": {
+    "count": 1,
+    "0": "staff"
+  },
+  "23": "edupersonprimaryaffiliation",
+  "cornelleduactivateddt": {
+    "count": 1,
+    "0": "18650101"
+  },
+  "24": "cornelleduactivateddt",
+  "cornelledumiddlename": {
+    "count": 1,
+    "0": ""
+  },
+  "25": "cornelledumiddlename",
+  "cn": {
+    "count": 1,
+    "0": "Testy Testerson"
+  },
+  "26": "cn",
+  "cornelleduprefmiddlename": {
+    "count": 1,
+    "0": ""
+  },
+  "27": "cornelleduprefmiddlename",
+  "displayname": {
+    "count": 1,
+    "0": "Testy Testerson"
+  },
+  "28": "displayname",
+  "cornelleduunivtitle1": {
+    "count": 1,
+    "0": "Fake Programmer I"
+  },
+  "29": "cornelleduunivtitle1",
+  "cornelleduwrkngtitle1": {
+    "count": 1,
+    "0": "Web Developer"
+  },
+  "30": "cornelleduwrkngtitle1",
+  "labeleduri": {
+    "count": 1,
+    "0": ""
+  },
+  "31": "labeleduri",
+  "edupersonnickname": {
+    "count": 1,
+    "0": ""
+  },
+  "32": "edupersonnickname",
+  "cornelledupublishedemail": {
+    "count": 1,
+    "0": "testerson@cornell.edu"
+  },
+  "33": "cornelledupublishedemail",
+  "description": {
+    "count": 1,
+    "0": ""
+  },
+  "34": "description",
+  "mail": {
+    "count": 1,
+    "0": "testerson@cornell.edu"
+  },
+  "35": "mail",
+  "cornelleducampusphone": {
+    "count": 1,
+    "0": "607\/2551111"
+  },
+  "36": "cornelleducampusphone",
+  "cornelledudeptid1": {
+    "count": 1,
+    "0": "CIT-ES"
+  },
+  "37": "cornelledudeptid1",
+  "cornelledudeptname1": {
+    "count": 1,
+    "0": "CIO - CIT Enterprise Services"
+  },
+  "38": "cornelledudeptname1",
+  "cornelleduorganizationalunitcode": {
+    "count": 1,
+    "0": "CIO"
+  },
+  "39": "cornelleduorganizationalunitcode",
+  "cornelleduorganizationalunitname": {
+    "count": 1,
+    "0": "VP for Information Systems"
+  },
+  "40": "cornelleduorganizationalunitname",
+  "count": 41,
+  "dn": "uid=tt999,ou=people,o=cornell university,c=us"
+}

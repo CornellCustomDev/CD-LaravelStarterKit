@@ -1,3 +1,5 @@
+## This file is for local development testing of the LaravelStarterKit in a project directory
+## It should be added to a `.lando.local.dev.yml
 services:
   appserver:
     overrides:

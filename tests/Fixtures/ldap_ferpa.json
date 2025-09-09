@@ -1,0 +1,112 @@
+{
+  "modifyTimestamp": {
+    "count": 1,
+    "0": "20230101015801Z"
+  },
+  "0": "modifyTimestamp",
+  "eduPersonOrgDN": {
+    "count": 1,
+    "0": "O=cornell university,C=us"
+  },
+  "1": "eduPersonOrgDN",
+  "cornelledumailroutingtime": {
+    "count": 1,
+    "0": "20220101195249"
+  },
+  "2": "cornelledumailroutingtime",
+  "cornelledumaildelivery": {
+    "count": 2,
+    "0": "exchange",
+    "1": "o365direct"
+  },
+  "3": "cornelledumaildelivery",
+  "cornelleduaffiliation": {
+    "count": 2,
+    "0": "alumni",
+    "1": "student"
+  },
+  "4": "cornelleduaffiliation",
+  "cornelleduprimaryaffiliation": {
+    "count": 1,
+    "0": "student"
+  },
+  "5": "cornelleduprimaryaffiliation",
+  "edupersonprimaryaffiliation": {
+    "count": 1,
+    "0": "student"
+  },
+  "6": "edupersonprimaryaffiliation",
+  "cornelledutype": {
+    "count": 1,
+    "0": "student"
+  },
+  "7": "cornelledutype",
+  "o": {
+    "count": 1,
+    "0": "Cornell University"
+  },
+  "8": "o",
+  "c": {
+    "count": 1,
+    "0": "US"
+  },
+  "9": "c",
+  "mailRoutingAddress": {
+    "count": 1,
+    "0": ""
+  },
+  "10": "mailRoutingAddress",
+  "cornelledupublishedemail": {
+    "count": 1,
+    "0": "tt999@cornell.edu"
+  },
+  "11": "cornelledupublishedemail",
+  "cornelleduactivateddt": {
+    "count": 1,
+    "0": "20160101"
+  },
+  "12": "cornelleduactivateddt",
+  "mail": {
+    "count": 1,
+    "0": "tt999@cornell.edu"
+  },
+  "13": "mail",
+  "objectClass": {
+    "count": 8,
+    "0": "top",
+    "1": "person",
+    "2": "organizationalperson",
+    "3": "inetOrgPerson",
+    "4": "mailrecipient",
+    "5": "eduperson",
+    "6": "cornelleduperson",
+    "7": "mailgroup"
+  },
+  "14": "objectClass",
+  "uid": {
+    "count": 1,
+    "0": "tt999"
+  },
+  "15": "uid",
+  "eduPersonPrincipalName": {
+    "count": 1,
+    "0": "tt999@cornell.edu"
+  },
+  "16": "eduPersonPrincipalName",
+  "cornelledunetid": {
+    "count": 1,
+    "0": "tt999"
+  },
+  "17": "cornelledunetid",
+  "cornelleduemplid": {
+    "count": 1,
+    "0": "9999999"
+  },
+  "18": "cornelleduemplid",
+  "createTimestamp": {
+    "count": 1,
+    "0": "20160101145215Z"
+  },
+  "19": "createTimestamp",
+  "count": 20
+}
