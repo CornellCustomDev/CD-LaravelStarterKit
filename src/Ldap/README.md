@@ -30,6 +30,15 @@ You can also search for users by netid prefix:
 $users = LdapSearch::searchByNetid('abc');  // returns Collection of LdapData for netids starting with 'abc'
 ```
 
+And you can search in bulk, skipping caching:
+
+```php
+$users = LdapSearch::bulkSearch(
+    filter: ['(|(uid=ab123)(uid=ab456))'],
+    attributes: ['uid', 'cornelleduprimaryaffiliation'],
+)
+```
+
 Documentation of all currently parsed fields can be found in [LdapData.php](./LdapData.php).
 
 ## Legacy Compatibility
