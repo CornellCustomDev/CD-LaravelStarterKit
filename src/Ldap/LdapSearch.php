@@ -113,7 +113,7 @@ class LdapSearch
     ): Collection {
         // Trap for empty strings
         if (empty(trim($filter))) {
-            throw new InvalidArgumentException('LdapSearch::batchSearch requires a search term');
+            throw new InvalidArgumentException('LdapSearch::bulkSearch requires a search term');
         }
         $attributes ??= self::DEFAULT_ATTRIBUTES;
 
