@@ -106,6 +106,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 'cu-auth' => 'CUAuth config',
                 'php-saml-toolkit' => 'php-saml config',
                 'certs' => 'SAML certificates (download IdP cert, generate SP keypair)',
+                'certs-weill' => 'SAML certificates for Weill Cornell',
             ],
             default: ['files', 'assets', 'components', 'cu-auth'],
             required: true,
@@ -171,6 +172,10 @@ class StarterKitServiceProvider extends PackageServiceProvider
 
         if ($install->contains('certs')) {
             $command->call('cu-auth:generate-keys', ['--force' => true]);
+        }
+
+        if ($install->contains('certs-weill')) {
+            $command->call('cu-auth:generate-keys', ['--force' => true, '--weill' => true]);
         }
 
         info('Installation complete.');

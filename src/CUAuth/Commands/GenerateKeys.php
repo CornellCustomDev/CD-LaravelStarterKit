@@ -4,32 +4,29 @@ namespace CornellCustomDev\LaravelStarterKit\CUAuth\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use OneLogin\Saml2\IdPMetadataParser;
 
 class GenerateKeys extends Command
 {
-    protected $signature = 'cu-auth:generate-keys {--force : Overwrite keys if they already exist}';
+    protected $signature = 'cu-auth:generate-keys {--force : Overwrite keys if they already exist} {--weill : Use Weill Cornell IdP instead of CIT IdP}';
 
-    protected $description = 'Generate public and private keys for SAML authentication, retrieve CIT public key.';
+    protected $description = 'Generate public and private keys for SAML authentication, retrieve public key.';
 
     public function handle(): void
     {
         $force = $this->option('force');
+        $weill = $this->option('weill');
 
         $certPath = config('cu-auth.cert-path');
         File::ensureDirectoryExists($certPath);
 
         $idpCertPath = $certPath.'/idp_cert.pem';
         if ($force || ! File::exists($idpCertPath)) {
-            $this->info('Downloading Cornell IDP certificate...');
-            $certDownloadUrl = app()->isProduction()
-                ? 'https://shibidp.cit.cornell.edu/cornell-idp.cer'
-                : 'https://shibidp-test.cit.cornell.edu/cornell-idp.cer';
-            $idpCertContents = app()->runningUnitTests()
-                ? 'test-idp-cert-contents'  // Dummy content for testing
-                : file_get_contents($certDownloadUrl);
+            $this->info('Downloading IDP certificate...');
+            $idpCertContents = $this->getIdpCert($weill);
             File::put($idpCertPath, $idpCertContents);
         } else {
-            $this->info('Cornell IDP certificate already exists.');
+            $this->info('IDP certificate already exists.');
         }
 
         $spKeyPath = $certPath.'/sp_key.pem';
@@ -58,5 +55,24 @@ class GenerateKeys extends Command
         }
 
         $this->info('Keys generated successfully.');
+    }
+
+    private function getIdpCert(bool $weill): string|false
+    {
+        if ($weill) {
+            $metadataUrl = app()->isProduction()
+                ? 'https://login.weill.cornell.edu/idp/saml2/idp/metadata.php'
+                : 'https://login-test.weill.cornell.edu/idp/saml2/idp/metadata.php';
+            $testContent = 'test-weill-idp-cert-contents';
+        } else {
+            $metadataUrl = app()->isProduction()
+                ? 'https://shibidp.cit.cornell.edu/idp/shibboleth'
+                : 'https://shibidp-test.cit.cornell.edu/idp/shibboleth';
+            $testContent = 'test-idp-cert-contents';
+        }
+
+        return app()->runningUnitTests()
+            ? $testContent // Placeholder content for testing
+            : IdPMetadataParser::parseRemoteXML($metadataUrl)['idp']['x509cert'];
     }
 }
