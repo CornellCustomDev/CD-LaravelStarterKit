@@ -2,6 +2,8 @@
 
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature\CUAuth;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\Events\CUAuthenticated;
+use CornellCustomDev\LaravelStarterKit\CUAuth\Listeners\AuthorizeUser;
 use CornellCustomDev\LaravelStarterKit\CUAuth\Managers\SamlIdentityManager;
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
 use CornellCustomDev\LaravelStarterKit\Tests\Feature\FeatureTestCase;
@@ -67,5 +69,74 @@ class SamlIdentityManagerTest extends FeatureTestCase
         $metadata = (new SamlIdentityManager)->getMetadata();
 
         $this->assertStringContainsString('entityID="https://localhost/sso"', $metadata);
+    }
+
+    public function testSamlIdentity()
+    {
+        config(['php-saml-toolkit.idp.entityId' => 'https://shibidp-test.cit.cornell.edu/idp/shibboleth']);
+        $saml = (new SamlIdentityManager)->retrieveIdentity([
+            'uid' => ['netid'],
+            'mail' => ['netid@cornell.edu'],
+        ]);
+
+        $this->assertTrue($saml->isCornellIdP());
+        $this->assertFalse($saml->isWeillIdP());
+        $this->assertEquals('netid', $saml->id());
+        $this->assertEquals('netid@cornell.edu', $saml->email());
+    }
+
+    public function testSamlWeillIdentity()
+    {
+        config(['php-saml-toolkit.idp.entityId' => 'https://login-test.weill.cornell.edu/idp/shibboleth']);
+        $saml = (new SamlIdentityManager)->retrieveIdentity([
+            'uid' => ['cwid'],
+            'mail' => ['cwid@med.cornell.edu'],
+        ]);
+
+        $this->assertFalse($saml->isCornellIdP());
+        $this->assertTrue($saml->isWeillIdP());
+        $this->assertEquals('cwid', $saml->id());
+        $this->assertEquals('cwid@med.cornell.edu', $saml->email());
+    }
+
+    public function testShibNames()
+    {
+        $identityManager = new SamlIdentityManager;
+        $shib = $identityManager->retrieveIdentity([
+            'uid' => ['netid'],
+            'displayName' => ['Test User'],
+        ]);
+        $this->assertEquals('Test User', $shib->name());
+
+        $shib = $identityManager->retrieveIdentity([
+            'uid' => ['netid'],
+            'cn' => ['Test User'],
+        ]);
+        $this->assertEquals('Test User', $shib->name());
+
+        $shib = $identityManager->retrieveIdentity([
+            'uid' => ['netid'],
+            'givenName' => ['Test'],
+            'sn' => ['User'],
+        ]);
+        $this->assertEquals('Test User', $shib->name());
+    }
+
+    public function testAuthorizeUser()
+    {
+        config(['php-saml-toolkit.idp.entityId' => 'https://login-test.weill.cornell.edu/idp/shibboleth']);
+        $identityManager = new SamlIdentityManager;
+        $remoteIdentity = $identityManager->retrieveIdentity([
+            'uid' => ['netid'],
+            'displayName' => ['Test User'],
+            'mail' => ['cwid@med.cornell.edu'],
+        ]);
+        $event = new CUAuthenticated('netid@cornell.edu');
+        $listener = new AuthorizeUser($identityManager);
+        $listener->handle($event, $remoteIdentity);
+
+        $this->assertTrue(auth()->check());
+        $this->assertEquals('Test User', auth()->user()->name);
+        $this->assertEquals('cwid@med.cornell.edu', auth()->user()->email);
     }
 }

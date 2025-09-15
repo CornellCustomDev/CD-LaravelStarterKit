@@ -6,6 +6,7 @@ use CornellCustomDev\LaravelStarterKit\CUAuth\DataObjects\RemoteIdentity;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\AuthnRequest;
 use OneLogin\Saml2\Error;
@@ -105,7 +106,10 @@ class SamlIdentityManager implements IdentityManager
         return $metadata;
     }
 
-    private function retrieveIdentity(?array $attributes = null): RemoteIdentity
+    /**
+     * @throws Exception
+     */
+    public function retrieveIdentity(?array $attributes = null): RemoteIdentity
     {
         if (empty($attributes)) {
             try {
@@ -126,8 +130,16 @@ class SamlIdentityManager implements IdentityManager
             $attributes = $auth->getAttributesWithFriendlyName();
         }
 
+        // Set IdP based on configured entityId
+        $idpEntityId = config('php-saml-toolkit.idp.entityId');
+        $idp = match (true) {
+            Str::contains($idpEntityId, 'weill'),
+            Str::contains($idpEntityId, 'med.cornell.edu') => 'weill.cornell.edu',
+            default => 'cit.cornell.edu',
+        };
+
         return RemoteIdentity::fromData(
-            idp: 'cit.cornell.edu',
+            idp: $idp,
             uid: $attributes['uid'][0] ?? '',
             data: $attributes,
             cn: $attributes['cn'][0] ?? null,
