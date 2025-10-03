@@ -69,7 +69,7 @@ return [
         | Identifier of the SP entity (must be a URI).
         |
         */
-        'entityId' => $sp_base_url.'/sso',
+        'entityId' => env('SAML_SP_ENTITY_ID', $sp_base_url.'/sso'),
 
         /*
         |----------------------------------------------------------------------
@@ -195,7 +195,7 @@ return [
         | Identifier of the IdP entity (must be a URI).
         |
         */
-        'entityId' => env('SAML_IDP_ENTITYID', $idp_base_url.'/shibboleth'),
+        'entityId' => env('SAML_IDP_ENTITY_ID', $idp_base_url.'/shibboleth'),
 
         /*
         |----------------------------------------------------------------------
@@ -223,7 +223,7 @@ return [
         /*
         'singleLogoutService' => [
             // URL of the IdP where the SP will send the SLO Request.
-            'url' => env('SAML_IDP_SLO_URL', $idp_entity_id.'/profile/SAML2/Redirect/SLO'),
+            'url' => env('SAML_IDP_SLO_URL', $idp_base_url.'/profile/SAML2/Redirect/SLO'),
             // URL of the IdP where the SP SLO Response will be sent.
             // If not set, the URL for the SLO Request will be used.
             'responseUrl' => '',
