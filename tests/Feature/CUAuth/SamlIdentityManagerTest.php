@@ -99,27 +99,48 @@ class SamlIdentityManagerTest extends FeatureTestCase
         $this->assertEquals('cwid@med.cornell.edu', $saml->email());
     }
 
-    public function testShibNames()
+    public function testIdentityNames()
     {
         $identityManager = new SamlIdentityManager;
-        $shib = $identityManager->retrieveIdentity([
+        $remoteIdentity = $identityManager->retrieveIdentity([
             'uid' => ['netid'],
             'displayName' => ['Test User'],
         ]);
-        $this->assertEquals('Test User', $shib->name());
+        $this->assertEquals('Test User', $remoteIdentity->name());
 
-        $shib = $identityManager->retrieveIdentity([
+        $remoteIdentity = $identityManager->retrieveIdentity([
             'uid' => ['netid'],
             'cn' => ['Test User'],
         ]);
-        $this->assertEquals('Test User', $shib->name());
+        $this->assertEquals('Test User', $remoteIdentity->name());
 
-        $shib = $identityManager->retrieveIdentity([
+        $remoteIdentity = $identityManager->retrieveIdentity([
             'uid' => ['netid'],
             'givenName' => ['Test'],
             'sn' => ['User'],
         ]);
-        $this->assertEquals('Test User', $shib->name());
+        $this->assertEquals('Test User', $remoteIdentity->name());
+    }
+
+    public function testIdentityOidValues()
+    {
+        $identityManager = new SamlIdentityManager;
+        $remoteIdentity = $identityManager->retrieveIdentity([
+            SamlIdentityManager::SAML_FIELDS['cn'] => ['Test User'],
+            SamlIdentityManager::SAML_FIELDS['eduPersonPrincipalName'] => ['netid@cornell.edu'],
+            SamlIdentityManager::SAML_FIELDS['uid'] => ['netid'],
+        ]);
+
+        // Confirm we sent the correct values to RemoteIdentity
+        $this->assertEquals([
+            'urn:oid:2.5.4.3' => ['Test User'],
+            'urn:oid:1.3.6.1.4.1.5923.1.1.1.6' => ['netid@cornell.edu'],
+            'urn:oid:0.9.2342.19200300.100.1.1' => ['netid'],
+        ], $remoteIdentity->data);
+
+        $this->assertEquals('Test User', $remoteIdentity->name());
+        $this->assertEquals('netid', $remoteIdentity->id());
+        $this->assertEquals('netid@cornell.edu', $remoteIdentity->email());
     }
 
     public function testAuthorizeUser()

@@ -15,20 +15,20 @@ use OneLogin\Saml2\ValidationError;
 
 class SamlIdentityManager implements IdentityManager
 {
-    // Shibboleth fields generally available from either cit or weill IdPs.
+    // Shibboleth fields generally available from either CIT or Weill IdPs.
     public const SAML_FIELDS = [
-        'eduPersonPrimaryAffiliation', // staff|student|...
-        'cn', // John R. Doe
-        'eduPersonPrincipalName', // netid@cornell.edu
-        'givenName', // John
-        'sn', // Doe
-        'displayName', // John Doe
-        'uid', // netid
-        'eduPersonOrgDN', // o=Cornell University,c=US
-        'mail', // alias? email
-        'eduPersonAffiliation', // ['employee', 'staff', ...]
-        'eduPersonScopedAffiliation', // [employee@cornell.edu, staff@cornell.edu, ...]
-        'eduPersonEntitlement',
+        'eduPersonPrimaryAffiliation' => 'urn:oid:1.3.6.1.4.1.5923.1.1.1.5',  // staff|student|...
+        'cn' => 'urn:oid:2.5.4.3',                   // John R. Doe
+        'eduPersonPrincipalName' => 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6',  // netid@cornell.edu
+        'givenName' => 'urn:oid:2.5.4.42',                  // John
+        'sn' => 'urn:oid:2.5.4.4',                   // Doe
+        'displayName' => 'urn:oid:2.16.840.1.113730.3.1.241', // John Doe
+        'uid' => 'urn:oid:0.9.2342.19200300.100.1.1', // netid
+        'eduPersonOrgDN' => 'urn:oid:1.3.6.1.4.1.5923.1.1.1.3',  // o=Cornell University,c=US
+        'mail' => 'urn:oid:0.9.2342.19200300.100.1.3', // alias? email
+        'eduPersonAffiliation' => 'urn:oid:1.3.6.1.4.1.5923.1.1.1.1',  // ['employee', 'staff', ...]
+        'eduPersonScopedAffiliation' => 'urn:oid:1.3.6.1.4.1.5923.1.1.1.9',  // [employee@cornell.edu, staff@cornell.edu, ...]
+        'eduPersonEntitlement' => 'urn:oid:1.3.6.1.4.1.5923.1.1.1.7',  //
     ];
 
     public function hasIdentity(): bool
@@ -127,7 +127,7 @@ class SamlIdentityManager implements IdentityManager
                 throw new Exception('SAML Response not authenticated');
             }
 
-            $attributes = $auth->getAttributesWithFriendlyName();
+            $attributes = $auth->getAttributesWithFriendlyName() ?: $auth->getAttributes();
         }
 
         // Set IdP based on configured entityId
@@ -138,16 +138,32 @@ class SamlIdentityManager implements IdentityManager
             default => 'cit.cornell.edu',
         };
 
+        $mappedAttributes = $this->mapAttributes($attributes);
+
         return RemoteIdentity::fromData(
             idp: $idp,
-            uid: $attributes['uid'][0] ?? '',
+            uid: $mappedAttributes['uid'] ?? '',
             data: $attributes,
-            cn: $attributes['cn'][0] ?? null,
-            givenName: $attributes['givenName'][0] ?? null,
-            sn: $attributes['sn'][0] ?? null,
-            displayName: $attributes['displayName'][0] ?? null,
-            eduPersonPrincipalName: $attributes['eduPersonPrincipalName'][0] ?? null,
-            mail: $attributes['mail'][0] ?? null,
+            cn: $mappedAttributes['cn'],
+            givenName: $mappedAttributes['givenName'],
+            sn: $mappedAttributes['sn'],
+            displayName: $mappedAttributes['displayName'],
+            eduPersonPrincipalName: $mappedAttributes['eduPersonPrincipalName'],
+            mail: $mappedAttributes['mail'],
         );
+    }
+
+    /**
+     * Map SAML attributes to self::SAML_FIELDS we expect.
+     */
+    private function mapAttributes(array $attributes): array
+    {
+        $mappedAttributes = [];
+        foreach (self::SAML_FIELDS as $key => $oid) {
+            // Prefer friendly name, fallback to OID
+            $mappedAttributes[$key] = Arr::get($attributes, $key, Arr::get($attributes, $oid))[0] ?? null;
+        }
+
+        return $mappedAttributes;
     }
 }
