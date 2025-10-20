@@ -159,7 +159,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
 
         if ($install->contains('cu-auth')) {
-            $this->publishTag($command, CUAuthServiceProvider::INSTALL_CONFIG_TAG);
+            $this->publishTag($command, 'starterkit:'.CUAuthServiceProvider::INSTALL_CONFIG_TAG);
         }
 
         info('Installation complete.');
