@@ -2,6 +2,7 @@
 
 namespace CornellCustomDev\LaravelStarterKit;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
@@ -158,7 +159,7 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
 
         if ($install->contains('cu-auth')) {
-            $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_CONFIG_TAG);
+            $this->publishTag($command, CUAuthServiceProvider::INSTALL_CONFIG_TAG);
         }
 
         info('Installation complete.');
