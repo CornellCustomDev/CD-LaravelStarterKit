@@ -5,18 +5,18 @@
   "type": "library",
   "require": {
     "php": "^8.3",
-    "illuminate/contracts": "^11.0|^12.0",
-    "livewire/livewire": "^3.6",
     "cornell-custom-dev/laravel-cu-auth": "^1.1",
-    "spatie/laravel-package-tools": "^1.92",
     "cubear/cwd_framework_lite": "^3.0",
+    "giggsey/locale": "^2.8",
+    "illuminate/support": "^11.0|^12.0",
+    "livewire/livewire": "^3.6",
     "propaganistas/laravel-phone": "^5.3",
-    "giggsey/locale": "^2.8"
+    "spatie/laravel-package-tools": "^1.92"
   },
   "require-dev": {
+    "laravel/pint": "^1.25",
     "orchestra/testbench": "^9.0|^10.0",
-    "phpunit/phpunit": "^10.5|^11.5|^12.0",
-    "laravel/pint": "^1.25"
+    "phpunit/phpunit": "^10.5|^11.5|^12.0"
   },
   "autoload": {
     "psr-4": {
@@ -34,6 +34,9 @@
         "CornellCustomDev\\LaravelStarterKit\\StarterKitServiceProvider"
       ]
     }
+  },
+  "config": {
+    "sort-packages": true
   },
   "minimum-stability": "stable",
   "prefer-stable": true
