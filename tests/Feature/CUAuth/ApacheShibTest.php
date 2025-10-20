@@ -10,6 +10,7 @@ use CornellCustomDev\LaravelStarterKit\CUAuth\Middleware\ApacheShib;
 use CornellCustomDev\LaravelStarterKit\Tests\Feature\FeatureTestCase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Orchestra\Testbench\Attributes\DefineRoute;
 
 class ApacheShibTest extends FeatureTestCase
 {
@@ -140,9 +141,7 @@ class ApacheShibTest extends FeatureTestCase
         $router->get(config('cu-auth.shibboleth_login_url'), fn () => 'ShibUrl')->name('cu-auth.shibboleth-login');
     }
 
-    /**
-     * @define-route usesAuthRoutes
-     */
+    #[DefineRoute('usesAuthRoutes')]
     public function testRoutesAreProtected()
     {
         $this->get(route('test'))->assertOk();
@@ -151,7 +150,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->followingRedirects()->get(route('test.require-cu-auth'))->assertSee('ShibUrl');
     }
 
-    /** @define-route usesAuthRoutes */
+    #[DefineRoute('usesAuthRoutes')]
     public function testRouteIsProtectedForRemoteUser()
     {
         $this->addCUAuthenticatedListener();
@@ -165,7 +164,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->get(route('test.require-cu-auth'))->assertOk();
     }
 
-    /** @define-route usesAuthRoutes */
+    #[DefineRoute('usesAuthRoutes')]
     public function testRouteIsProtectedForProductionRemoteUser()
     {
         $this->addCUAuthenticatedListener();
@@ -180,7 +179,7 @@ class ApacheShibTest extends FeatureTestCase
         $this->get(route('test.require-cu-auth'))->assertOk();
     }
 
-    /** @define-route usesAuthRoutes */
+    #[DefineRoute('usesAuthRoutes')]
     public function testRouteIsProtectedForLocalUser()
     {
         config(['cu-auth.apache_shib_user_variable' => 'REMOTE_USER_TEST']);

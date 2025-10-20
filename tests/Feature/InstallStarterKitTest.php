@@ -29,7 +29,7 @@ class InstallStarterKitTest extends TestCase
 
     public function testCanRunAllInstallations()
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->applicationBasePath();
         $themeName = StarterKitServiceProvider::THEME_NAME;
         $projectName = 'Test Project';
 
@@ -55,7 +55,7 @@ class InstallStarterKitTest extends TestCase
     public function testDeletesInstallFilesBeforeTests()
     {
         // Confirm no files are in the resources/views directory other than the default welcome.blade.php file
-        $basePath = $this->getBasePath();
+        $basePath = $this->applicationBasePath();
         $files = File::files("$basePath/resources/views");
         $this->assertCount(1, $files);
         $this->assertEquals('welcome.blade.php', $files[0]->getFilename());
@@ -109,7 +109,7 @@ class InstallStarterKitTest extends TestCase
             ]
         );
         // Confirm that the readme file has the default content
-        $basePath = $this->getBasePath();
+        $basePath = $this->applicationBasePath();
         $readmeContents = File::get("$basePath/README.md");
         $this->assertStringContainsString(':project_name', $readmeContents);
 
@@ -128,7 +128,7 @@ class InstallStarterKitTest extends TestCase
 
     private function resetInstallFiles(): void
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->applicationBasePath();
         $themeName = StarterKitServiceProvider::THEME_NAME;
 
         // Delete files from previous tests
@@ -155,7 +155,7 @@ class InstallStarterKitTest extends TestCase
 
     private function assertContentUpdated(string $projectName, string $projectDescription): void
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->applicationBasePath();
 
         $readmeContents = File::get("$basePath/README.md");
         $this->assertStringContainsString($projectName, $readmeContents);
@@ -176,7 +176,7 @@ class InstallStarterKitTest extends TestCase
 
     public function testCanInstallCUAuthConfigFiles()
     {
-        $basePath = $this->getBasePath();
+        $basePath = $this->applicationBasePath();
         $defaultVariable = 'REMOTE_USER';
         $testVariable = 'REDIRECT_REMOTE_USER';
         // Make sure we have config values
