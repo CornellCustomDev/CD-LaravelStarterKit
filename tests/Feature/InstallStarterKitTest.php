@@ -49,6 +49,12 @@ class InstallStarterKitTest extends TestCase
             haystack: File::get("$basePath/resources/views/examples/cd-index.blade.php")
         );
         $this->assertFileExists("$basePath/config/cu-auth.php");
+        $this->assertFileExists("$basePath/config/php-saml-toolkit.php");
+        $this->assertFileExists("$basePath/storage/app/keys/idp_cert.pem");
+        $this->assertStringContainsString(
+            needle: 'test-weill-idp-cert-contents',
+            haystack: File::get("$basePath/storage/app/keys/idp_cert.pem")
+        );
     }
 
     public function testDeletesInstallFilesBeforeTests()
@@ -64,8 +70,12 @@ class InstallStarterKitTest extends TestCase
             if (Str::endsWith($directory, 'errors')) {
                 continue;
             }
-            $this->assertEmpty(File::files($directory));
+            $this->assertEmpty(File::files($directory), "$directory should be empty.");
         }
+
+        $this->assertFileDoesNotExist("$basePath/config/cu-auth.php");
+        $this->assertFileDoesNotExist("$basePath/config/php-saml-toolkit.php");
+        $this->assertDirectoryDoesNotExist("$basePath/storage/app/keys");
     }
 
     public function testInstallReplacesFiles()
@@ -138,13 +148,15 @@ class InstallStarterKitTest extends TestCase
         File::deleteDirectory("$basePath/resources/views/components");
         File::deleteDirectory("$basePath/resources/views/examples");
         File::delete("$basePath/config/cu-auth.php");
+        File::delete("$basePath/config/php-saml-toolkit.php");
+        File::deleteDirectory("$basePath/storage/app/keys");
     }
 
     private function installAll(string $projectName, string $projectDescription): PendingCommand
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples', 'cu-auth',
+                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml-toolkit', 'certs', 'certs-weill',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
