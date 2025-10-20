@@ -5,6 +5,7 @@
   "type": "library",
   "require": {
     "php": "^8.3",
+    "cornell-custom-dev/laravel-cu-auth": "^1.1",
     "cubear/cwd_framework_lite": "^3.0",
     "giggsey/locale": "^2.8",
     "illuminate/support": "^11.0|^12.0",
@@ -30,8 +31,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "CornellCustomDev\\LaravelStarterKit\\StarterKitServiceProvider",
-        "CornellCustomDev\\LaravelStarterKit\\CUAuth\\CUAuthServiceProvider"
+        "CornellCustomDev\\LaravelStarterKit\\StarterKitServiceProvider"
       ]
     }
   },

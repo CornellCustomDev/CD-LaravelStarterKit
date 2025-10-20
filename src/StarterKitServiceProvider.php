@@ -2,6 +2,7 @@
 
 namespace CornellCustomDev\LaravelStarterKit;
 
+use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
@@ -102,6 +103,9 @@ class StarterKitServiceProvider extends PackageServiceProvider
                 'components' => 'View components (/resources/views/components/cd)',
                 'examples' => 'Example blade files',
                 'cu-auth' => 'CUAuth config',
+                'php-saml-toolkit' => 'PHP-SAML config',
+                'certs' => 'SAML certificates (download IdP cert, generate SP keypair)',
+                'certs-weill' => 'SAML certificates for Weill Cornell',
             ],
             default: ['files', 'assets', 'components', 'cu-auth'],
             required: true,
@@ -158,7 +162,19 @@ class StarterKitServiceProvider extends PackageServiceProvider
         }
 
         if ($install->contains('cu-auth')) {
-            $this->publishTag($command, self::PACKAGE_NAME.':'.CuAuth\CuAuthServiceProvider::INSTALL_CONFIG_TAG);
+            $this->publishTag($command, 'starterkit:'.CUAuthServiceProvider::INSTALL_CONFIG_TAG);
+        }
+
+        if ($install->contains('php-saml-toolkit')) {
+            $this->publishTag($command, 'starterkit:'.CuAuth\CuAuthServiceProvider::INSTALL_PHP_SAML_TAG);
+        }
+
+        if ($install->contains('certs')) {
+            $command->call('cu-auth:generate-keys', ['--force' => true]);
+        }
+
+        if ($install->contains('certs-weill')) {
+            $command->call('cu-auth:generate-keys', ['--force' => true, '--weill' => true]);
         }
 
         info('Installation complete.');

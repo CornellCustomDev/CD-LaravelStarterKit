@@ -2,7 +2,6 @@
 
 namespace CornellCustomDev\LaravelStarterKit\Tests\Feature;
 
-use CornellCustomDev\LaravelStarterKit\CUAuth\CUAuthServiceProvider;
 use CornellCustomDev\LaravelStarterKit\StarterKitServiceProvider;
 use CornellCustomDev\LaravelStarterKit\Tests\TestCase;
 use Illuminate\Support\Facades\File;
@@ -50,6 +49,12 @@ class InstallStarterKitTest extends TestCase
             haystack: File::get("$basePath/resources/views/examples/cd-index.blade.php")
         );
         $this->assertFileExists("$basePath/config/cu-auth.php");
+        $this->assertFileExists("$basePath/config/php-saml-toolkit.php");
+        $this->assertFileExists("$basePath/storage/app/keys/idp_cert.pem");
+        $this->assertStringContainsString(
+            needle: 'test-weill-idp-cert-contents',
+            haystack: File::get("$basePath/storage/app/keys/idp_cert.pem")
+        );
     }
 
     public function testDeletesInstallFilesBeforeTests()
@@ -65,8 +70,12 @@ class InstallStarterKitTest extends TestCase
             if (Str::endsWith($directory, 'errors')) {
                 continue;
             }
-            $this->assertEmpty(File::files($directory));
+            $this->assertEmpty(File::files($directory), "$directory should be empty.");
         }
+
+        $this->assertFileDoesNotExist("$basePath/config/cu-auth.php");
+        $this->assertFileDoesNotExist("$basePath/config/php-saml-toolkit.php");
+        $this->assertDirectoryDoesNotExist("$basePath/storage/app/keys");
     }
 
     public function testInstallReplacesFiles()
@@ -139,13 +148,15 @@ class InstallStarterKitTest extends TestCase
         File::deleteDirectory("$basePath/resources/views/components");
         File::deleteDirectory("$basePath/resources/views/examples");
         File::delete("$basePath/config/cu-auth.php");
+        File::delete("$basePath/config/php-saml-toolkit.php");
+        File::deleteDirectory("$basePath/storage/app/keys");
     }
 
     private function installAll(string $projectName, string $projectDescription): PendingCommand
     {
         return $this->artisan(StarterKitServiceProvider::PACKAGE_NAME.':install')
             ->expectsQuestion('What would you like to install or update?', [
-                'files', 'assets', 'components', 'examples', 'cu-auth',
+                'files', 'assets', 'components', 'examples', 'cu-auth', 'php-saml-toolkit', 'certs', 'certs-weill',
             ])
             ->expectsQuestion('Project name', $projectName)
             ->expectsQuestion('Project description', $projectDescription)
@@ -172,36 +183,5 @@ class InstallStarterKitTest extends TestCase
 
         $landoContents = File::get("$basePath/.lando.yml");
         $this->assertStringContainsString(Str::slug($projectName), $landoContents);
-    }
-
-    public function testCanInstallCUAuthConfigFiles()
-    {
-        $basePath = $this->applicationBasePath();
-        $defaultVariable = 'REMOTE_USER';
-        $testVariable = 'REDIRECT_REMOTE_USER';
-        // Make sure we have config values
-        $this->refreshApplication();
-
-        $userVariable = config('cu-auth.apache_shib_user_variable');
-        $this->assertEquals($defaultVariable, $userVariable);
-
-        $this->artisan(
-            command: 'vendor:publish',
-            parameters: [
-                '--tag' => StarterKitServiceProvider::PACKAGE_NAME.':'.CUAuthServiceProvider::INSTALL_CONFIG_TAG,
-                '--force' => true,
-            ])
-            ->assertSuccessful();
-
-        // Update the config file with a test value for cu-auth.apache_shib_user_variable.
-        File::put("$basePath/config/cu-auth.php", str_replace(
-            "'$defaultVariable'",
-            "'$testVariable'",
-            File::get("$basePath/config/cu-auth.php")
-        ));
-        $this->refreshApplication();
-
-        $userVariable = config('cu-auth.apache_shib_user_variable');
-        $this->assertEquals($testVariable, $userVariable);
     }
 }
